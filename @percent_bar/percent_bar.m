@@ -38,6 +38,8 @@ classdef percent_bar < handle
         time_start = [];
         time_end = [];
         
+        NAME = 'Percent Bar';
+        
     end
     
     properties (Access = private)
@@ -121,8 +123,77 @@ classdef percent_bar < handle
             end
             
         end
+                
+    end
+    
+    methods (Access = private)
         
-        function iteration_finished_WAITBAR(this,percent_done)
+        function parse_input(this,Hvarargin)
+            
+            p = inputParser;
+
+            addParameter(p,'char_bar',       '=', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
+            addParameter(p,'char_side',      '|', @(x) ischar(x) && ~ismember(x,this.bar_characters_not_allowed));
+            addParameter(p,'char_empty',     ' ', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
+            addParameter(p,'char_blink',     '.', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
+            addParameter(p,'bar_length',     100, @(x) isnumeric(x) && isscalar(x));
+            addParameter(p,'blink_interval', 0,   @(x) isnumeric(x) && isscalar(x));
+            
+            addParameter(p,'selftime_show',   0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
+            addParameter(p,'CMDLINE_ONLY',  0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
+            addParameter(p,'datestr_format','dd.mm.yyyy HH:MM', @(x) all(boolean(datestr(now,x))));
+            addParameter(p,'warn_high_selftime',0.1, @(x) validateattributes(x,{'numeric'},{'scalar','>=',0,'<=',1}));
+            
+            parse(p,Hvarargin{:});
+            
+            this.bar_character = p.Results.char_bar;
+            this.side_character = p.Results.char_side;
+            this.empty_character = p.Results.char_empty;
+            this.blink_character = p.Results.char_blink;
+            this.bar_length = max(this.bar_length_min,p.Results.bar_length);
+            this.blink_interval = p.Results.blink_interval;
+
+            this.CMDLINE_ONLY = boolean(p.Results.CMDLINE_ONLY);
+            this.SHOW_SELFTIME = boolean(p.Results.selftime_show);
+            this.datestr_format = p.Results.datestr_format;
+            this.self_time_warn_percent = p.Results.warn_high_selftime;
+
+        end
+        
+        function start(this)
+            
+            this.reset_percent_bar();
+            
+            this.time_start = now;
+            this.tic_start = tic;
+            this.t_self = 0;
+
+        end
+        
+        function finish(this)
+            
+            fprintf('End time: %s\n' , datestr(now,this.datestr_format));
+            
+            if ~isempty(this.tic_start)
+
+                toc(this.tic_start);
+
+                this.time_end = now;
+                this.t_tot = toc(this.tic_start);
+                                
+                if this.SHOW_SELFTIME
+                    fprintf('Self time percent_bar: %.2f %%\n',100*this.t_self/this.t_tot);
+                end
+                
+                if this.t_self/this.t_tot > this.self_time_warn_percent
+                    warning('percent_bar: self time > %.1f %%',100*this.self_time_warn_percent);
+                end
+
+            end
+
+        end
+        
+    	function iteration_finished_WAITBAR(this,percent_done)
             
             time_end_est = this.get_estimated_endtime(percent_done);                
             if ~isempty(time_end_est)
@@ -131,11 +202,7 @@ classdef percent_bar < handle
                 msg = '';
             end
 
-            if isempty(this.WB)
-                this.WB = waitbar(percent_done,msg);
-            else
-                waitbar(percent_done,this.WB,msg);
-            end
+            this.waitbar_update(percent_done,msg);
             
             if percent_done == 1
                 close(this.WB);
@@ -217,75 +284,6 @@ classdef percent_bar < handle
             
         end
         
-    end
-    
-    methods (Access = private)
-       
-        function parse_input(this,Hvarargin)
-            
-            p = inputParser;
-
-            addParameter(p,'char_bar',       '=', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
-            addParameter(p,'char_side',      '|', @(x) ischar(x) && ~ismember(x,this.bar_characters_not_allowed));
-            addParameter(p,'char_empty',     ' ', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
-            addParameter(p,'char_blink',     '.', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
-            addParameter(p,'bar_length',     100, @(x) isnumeric(x) && isscalar(x));
-            addParameter(p,'blink_interval', 0,   @(x) isnumeric(x) && isscalar(x));
-            
-            addParameter(p,'selftime_show',   0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
-            addParameter(p,'CMDLINE_ONLY',  0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
-            addParameter(p,'datestr_format','dd.mm.yyyy HH:MM', @(x) all(boolean(datestr(now,x))));
-            addParameter(p,'warn_high_selftime',0.1, @(x) validateattributes(x,{'numeric'},{'scalar','>=',0,'<=',1}));
-            
-            parse(p,Hvarargin{:});
-            
-            this.bar_character = p.Results.char_bar;
-            this.side_character = p.Results.char_side;
-            this.empty_character = p.Results.char_empty;
-            this.blink_character = p.Results.char_blink;
-            this.bar_length = max(this.bar_length_min,p.Results.bar_length);
-            this.blink_interval = p.Results.blink_interval;
-
-            this.CMDLINE_ONLY = boolean(p.Results.CMDLINE_ONLY);
-            this.SHOW_SELFTIME = boolean(p.Results.selftime_show);
-            this.datestr_format = p.Results.datestr_format;
-            this.self_time_warn_percent = p.Results.warn_high_selftime;
-
-        end
-        
-        function start(this)
-            
-            this.reset_percent_bar();
-            
-            this.time_start = now;
-            this.tic_start = tic;
-            this.t_self = 0;
-
-        end
-        
-        function finish(this)
-            
-            fprintf('End time: %s\n' , datestr(now,this.datestr_format));
-            
-            if ~isempty(this.tic_start)
-
-                toc(this.tic_start);
-
-                this.time_end = now;
-                this.t_tot = toc(this.tic_start);
-                                
-                if this.SHOW_SELFTIME
-                    fprintf('Self time percent_bar: %.2f %%\n',100*this.t_self/this.t_tot);
-                end
-                
-                if this.t_self/this.t_tot > this.self_time_warn_percent
-                    warning('percent_bar: self time > %.1f %%',100*this.self_time_warn_percent);
-                end
-
-            end
-
-        end
-        
         function time_end_est = get_estimated_endtime(this,percent_done)
             
             validateattributes(percent_done,{'numeric'},{'scalar','>=',0,'<=',1});
@@ -309,6 +307,20 @@ classdef percent_bar < handle
             
         end
         
+        function waitbar_update(this,percent_done,msg)
+            
+            if isempty(this.WB)
+                this.WB = waitbar(percent_done,msg,'name',this.NAME);
+            else
+                if ~isvalid(this.WB)
+                    this.WB = waitbar(percent_done,msg,'name',this.NAME);
+                else
+                    waitbar(percent_done,this.WB,msg);
+                end
+            end
+            
+        end
+
     end
     
 end
