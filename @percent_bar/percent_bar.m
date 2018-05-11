@@ -12,12 +12,16 @@
 %         'self_time_warn_percent'
 %
 %         'CMDLINE_ONLY'
-
+%
+%
+% UPDATES:
+% - waitbar can be closed without killing parent
+% - waitbar window is opened at initialization
 
 classdef percent_bar < handle
-
+    
     properties (SetAccess = private)
-
+        
         bar_length;
         bar_character;
         side_character;
@@ -25,7 +29,7 @@ classdef percent_bar < handle
         blink_character;
         blink_interval;
         
-
+        
         CMDLINE_ONLY;
         SHOW_SELFTIME;
         
@@ -43,10 +47,10 @@ classdef percent_bar < handle
     end
     
     properties (Access = private)
-
+        
         bar_length_min = 4;
         bar_characters_not_allowed = ['%' , '\'];
-
+        
         N_msg_characters;
         msg_old;
         percent_done_old;
@@ -57,7 +61,7 @@ classdef percent_bar < handle
         
         
         WB = [];
-
+        
         MODE = [];
         
     end
@@ -84,7 +88,9 @@ classdef percent_bar < handle
             fprintf('Start ...\n');
             
             this.start();
-                        
+            
+            this.iteration_finished(0);
+            
         end
         
         function reset_percent_bar(this)
@@ -93,16 +99,16 @@ classdef percent_bar < handle
             this.msg_old = '\';
             this.percent_done_old = -Inf;
             this.blink_ON = 0;
-
+            
             this.t_tot = [];
             this.t_self = [];
-
+            
             this.time_start = [];
             this.time_end = [];
             
             close(this.WB);
             this.WB = [];
-
+            
         end
         
         function iteration_finished(this,percent_done)
@@ -123,7 +129,7 @@ classdef percent_bar < handle
             end
             
         end
-                
+	
     end
     
     methods (Access = private)
@@ -131,7 +137,7 @@ classdef percent_bar < handle
         function parse_input(this,Hvarargin)
             
             p = inputParser;
-
+            
             addParameter(p,'char_bar',       '=', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
             addParameter(p,'char_side',      '|', @(x) ischar(x) && ~ismember(x,this.bar_characters_not_allowed));
             addParameter(p,'char_empty',     ' ', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
@@ -152,12 +158,12 @@ classdef percent_bar < handle
             this.blink_character = p.Results.char_blink;
             this.bar_length = max(this.bar_length_min,p.Results.bar_length);
             this.blink_interval = p.Results.blink_interval;
-
+            
             this.CMDLINE_ONLY = boolean(p.Results.CMDLINE_ONLY);
             this.SHOW_SELFTIME = boolean(p.Results.selftime_show);
             this.datestr_format = p.Results.datestr_format;
             this.self_time_warn_percent = p.Results.warn_high_selftime;
-
+            
         end
         
         function start(this)
@@ -167,7 +173,7 @@ classdef percent_bar < handle
             this.time_start = now;
             this.tic_start = tic;
             this.t_self = 0;
-
+            
         end
         
         function finish(this)
@@ -175,12 +181,12 @@ classdef percent_bar < handle
             fprintf('End time: %s\n' , datestr(now,this.datestr_format));
             
             if ~isempty(this.tic_start)
-
+                
                 toc(this.tic_start);
-
+                
                 this.time_end = now;
                 this.t_tot = toc(this.tic_start);
-                                
+                
                 if this.SHOW_SELFTIME
                     fprintf('Self time percent_bar: %.2f %%\n',100*this.t_self/this.t_tot);
                 end
@@ -188,20 +194,16 @@ classdef percent_bar < handle
                 if this.t_self/this.t_tot > this.self_time_warn_percent
                     warning('percent_bar: self time > %.1f %%',100*this.self_time_warn_percent);
                 end
-
+                
             end
-
+            
         end
         
     	function iteration_finished_WAITBAR(this,percent_done)
             
-            time_end_est = this.get_estimated_endtime(percent_done);                
-            if ~isempty(time_end_est)
-                msg = ['Estimated end time: ' , datestr(time_end_est,this.datestr_format)];
-            else
-                msg = '';
-            end
-
+            [ ~ , time_end_est_string ] = this.get_estimated_endtime(percent_done);
+            msg = time_end_est_string;
+            
             this.waitbar_update(percent_done,msg);
             
             if percent_done == 1
@@ -256,7 +258,6 @@ classdef percent_bar < handle
                     Hside_character = this.side_character;
                 end
                 
-                
                 this.percent_done_old = Hpercent_done;
                 if Hpercent_done < 100*(1/2-1/this.bar_length)
                     str_pad_with = Hempty_character;
@@ -269,10 +270,8 @@ classdef percent_bar < handle
                 msg(round(this.bar_length/2)-1:round(this.bar_length/2)+3) = msg_percent;
                 msg = [Hside_character , msg , Hside_character , '\n'];
                 
-                time_end_est = this.get_estimated_endtime(Hpercent_done/100);                
-                if ~isempty(time_end_est)
-                    msg = [msg , 'Estimated end time: ' , datestr(time_end_est,this.datestr_format) , '\n'];
-                end
+                [ ~ , time_end_est_string ] = this.get_estimated_endtime(Hpercent_done/100);
+                msg = [msg , time_end_est_string , '\n'];
                 
                 % Delete and print
                 fprintf(repmat('\b',1,this.N_msg_characters-this.count_forbidden_characters(this.msg_old)+1));
@@ -284,7 +283,7 @@ classdef percent_bar < handle
             
         end
         
-        function time_end_est = get_estimated_endtime(this,percent_done)
+        function [ time_end_est , time_end_est_string ] = get_estimated_endtime(this,percent_done)
             
             validateattributes(percent_done,{'numeric'},{'scalar','>=',0,'<=',1});
             
@@ -296,8 +295,14 @@ classdef percent_bar < handle
                 time_end_est = now + (t_overall_est - t_elapsed)/60/60/24;
             end
             
+            if ~isempty(time_end_est)
+                time_end_est_string = ['Estimated end time: ' , datestr(time_end_est,this.datestr_format)];
+            else
+                time_end_est_string = 'Estimated end time: --:--';
+            end
+            
         end
-                    
+        
         function cnt = count_forbidden_characters(this,msg)
             
             cnt = 0;
@@ -320,7 +325,7 @@ classdef percent_bar < handle
             end
             
         end
-
+        
     end
     
 end
