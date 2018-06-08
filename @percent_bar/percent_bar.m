@@ -10,6 +10,7 @@
 %         'selftime_show'
 %         'datestr_format'
 %         'self_time_warn_percent'
+%         'keep_waitbar_open'
 %
 %         'CMDLINE_ONLY'
 %
@@ -28,6 +29,7 @@ classdef percent_bar < handle
         empty_character;
         blink_character;
         blink_interval;
+        keep_waitbar_open;
         
         
         CMDLINE_ONLY;
@@ -130,6 +132,12 @@ classdef percent_bar < handle
             
         end
 	
+        function delete(this)
+            if ~this.keep_waitbar_open && isa(this.WB,'matlab.ui.Figure') && isvalid(this.WB)
+                close(this.WB);
+            end
+        end
+
     end
     
     methods (Access = private)
@@ -144,6 +152,7 @@ classdef percent_bar < handle
             addParameter(p,'char_blink',     '.', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
             addParameter(p,'bar_length',     100, @(x) isnumeric(x) && isscalar(x));
             addParameter(p,'blink_interval', 0,   @(x) isnumeric(x) && isscalar(x));
+            addParameter(p,'keep_waitbar_open', 0,@(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
             
             addParameter(p,'selftime_show',   0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
             addParameter(p,'CMDLINE_ONLY',  0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
@@ -158,6 +167,7 @@ classdef percent_bar < handle
             this.blink_character = p.Results.char_blink;
             this.bar_length = max(this.bar_length_min,p.Results.bar_length);
             this.blink_interval = p.Results.blink_interval;
+            this.keep_waitbar_open = p.Results.keep_waitbar_open;
             
             this.CMDLINE_ONLY = boolean(p.Results.CMDLINE_ONLY);
             this.SHOW_SELFTIME = boolean(p.Results.selftime_show);
