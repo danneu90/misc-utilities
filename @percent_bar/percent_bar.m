@@ -117,6 +117,9 @@ classdef percent_bar < handle
             
             t0 = tic;
             
+            validateattributes(percent_done,{'double','single'},{'scalar','>=',0});
+            assert(percent_done <= 1,'Percentage greater 100 %. Was the counter incremented too often?');
+            
             if isempty(this.time_start)
                 warning('percent_bar: Not proberly initialized. Time estimates may be wrong. Use init_loop.');
                 this.start();
@@ -230,6 +233,8 @@ classdef percent_bar < handle
             
             if this.percent_done_old ~= Hpercent_done
                 
+                [ ~ , time_end_est_string ] = this.get_estimated_endtime(Hpercent_done/100);
+                
                 if this.blink_interval > 0
                     if isempty(this.blink_start)
                         this.blink_start = tic;
@@ -280,7 +285,6 @@ classdef percent_bar < handle
                 msg(round(this.bar_length/2)-1:round(this.bar_length/2)+3) = msg_percent;
                 msg = [Hside_character , msg , Hside_character , '\n'];
                 
-                [ ~ , time_end_est_string ] = this.get_estimated_endtime(Hpercent_done/100);
                 msg = [msg , time_end_est_string , '\n'];
                 
                 % Delete and print
@@ -294,8 +298,6 @@ classdef percent_bar < handle
         end
         
         function [ time_end_est , time_end_est_string ] = get_estimated_endtime(this,percent_done)
-            
-            validateattributes(percent_done,{'numeric'},{'scalar','>=',0,'<=',1});
             
             if isempty(this.tic_start) || percent_done == 0
                 time_end_est = [];
