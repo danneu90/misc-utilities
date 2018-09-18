@@ -35,7 +35,7 @@ classdef percent_bar < handle
         
         CMDLINE_ONLY;
         SHOW_SELFTIME;
-        PROFILING_ON = 1;
+        PROFILING_ON;
         
         datestr_format;
         self_time_warn_percent;
@@ -64,7 +64,7 @@ classdef percent_bar < handle
         blink_start;
         
         profiling = struct('percent_done',{},...
-                           't0',{},...
+                           'time_current',{},...
                            'time_end_est',{});
         
         WB = [];
@@ -136,7 +136,7 @@ classdef percent_bar < handle
             time_end_est = this.MODE(percent_done);
 
             if this.PROFILING_ON
-                this.profiling = [this.profiling , struct('percent_done',percent_done,'t0',t0,'time_end_est',time_end_est)];
+                this.profiling = [this.profiling , struct('percent_done',percent_done,'time_current',now,'time_end_est',time_end_est)];
             end
             
             this.t_self = this.t_self + toc(t0);
@@ -144,6 +144,35 @@ classdef percent_bar < handle
             if percent_done == 1
                 this.finish();
             end
+            
+        end
+        
+        function [profiling , Fig] = view_profiling(this)
+%%
+% close all;
+            profiling = this.profiling;
+            assert(this.PROFILING_ON,'Profiling not active');
+            assert(~isempty(this.profiling),'Run percent bar first.');
+            
+            percent_done = [this.profiling.percent_done]*100;
+            time_current = [this.profiling.time_current];
+            time_end_est = [this.profiling.time_end_est];
+            
+            percent_per_second = diff(percent_done)./diff(time_current)/60/60/24;
+            Hpercent_done = percent_done(2:end);
+            
+            Fig = figure;
+%             subplot(2,1,1);
+            plot(Hpercent_done(~isinf(percent_per_second) & ~isnan(percent_per_second)) , ...
+                  percent_per_second(~isinf(percent_per_second) & ~isnan(percent_per_second)));
+            ylim([0,1.1*Fig.Children.YLim(2)]);
+            xlim([0,100]);
+            grid on;
+            title('Processing speed over percent');
+            xlabel('percent');
+            ylabel('percent/s');
+            
+%             subplot(2,1,2);
             
         end
 	
@@ -172,6 +201,7 @@ classdef percent_bar < handle
             
             addParameter(p,'selftime_show',   0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
             addParameter(p,'CMDLINE_ONLY',  0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
+            addParameter(p,'PROFILING_ON',  0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
             addParameter(p,'datestr_format','dd.mm.yyyy HH:MM', @(x) all(boolean(datestr(now,x))));
             addParameter(p,'warn_high_selftime',0.1, @(x) validateattributes(x,{'numeric'},{'scalar','>=',0,'<=',1}));
             
@@ -186,6 +216,7 @@ classdef percent_bar < handle
             this.keep_waitbar_open = p.Results.keep_waitbar_open;
             
             this.CMDLINE_ONLY = boolean(p.Results.CMDLINE_ONLY);
+            this.PROFILING_ON = boolean(p.Results.PROFILING_ON);
             this.SHOW_SELFTIME = boolean(p.Results.selftime_show);
             this.datestr_format = p.Results.datestr_format;
             this.self_time_warn_percent = p.Results.warn_high_selftime;
