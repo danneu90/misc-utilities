@@ -11,6 +11,7 @@
 %         'datestr_format'
 %         'self_time_warn_percent'
 %         'keep_waitbar_open'
+%         'name'
 %
 %         'CMDLINE_ONLY'
 %
@@ -44,7 +45,7 @@ classdef percent_bar < handle
         time_start = [];
         time_end = [];
         
-        NAME = 'Percent Bar';
+        name = 'Percent Bar';
         
     end
     
@@ -87,6 +88,9 @@ classdef percent_bar < handle
         
         function init_loop(this)
             
+            if this.CMDLINE_ONLY
+                fprintf('\n%s:\n',this.name);
+            end
             fprintf('Start ...\n');
             
             this.start();
@@ -149,13 +153,14 @@ classdef percent_bar < handle
             
             p = inputParser;
             
-            addParameter(p,'char_bar',       '=', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
-            addParameter(p,'char_side',      '|', @(x) ischar(x) && ~ismember(x,this.bar_characters_not_allowed));
-            addParameter(p,'char_empty',     ' ', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
-            addParameter(p,'char_blink',     '.', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
-            addParameter(p,'bar_length',     100, @(x) isnumeric(x) && isscalar(x));
-            addParameter(p,'blink_interval', 0,   @(x) isnumeric(x) && isscalar(x));
-            addParameter(p,'keep_waitbar_open', 0,@(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
+            addParameter(p,'char_bar',        '=', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
+            addParameter(p,'char_side',       '|', @(x) ischar(x) && ~ismember(x,this.bar_characters_not_allowed));
+            addParameter(p,'char_empty',      ' ', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
+            addParameter(p,'char_blink',      '.', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
+            addParameter(p,'bar_length',      100, @(x) isnumeric(x) && isscalar(x));
+            addParameter(p,'blink_interval',    0, @(x) isnumeric(x) && isscalar(x));
+            addParameter(p,'keep_waitbar_open', 0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
+            addParameter(p,'name',  'Percent Bar', @(x) validateattributes(x,{'string','char'},{'scalartext'}));
             
             addParameter(p,'selftime_show',   0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
             addParameter(p,'CMDLINE_ONLY',  0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
@@ -176,6 +181,7 @@ classdef percent_bar < handle
             this.SHOW_SELFTIME = boolean(p.Results.selftime_show);
             this.datestr_format = p.Results.datestr_format;
             this.self_time_warn_percent = p.Results.warn_high_selftime;
+            this.name = p.Results.name;
             
         end
         
@@ -327,10 +333,10 @@ classdef percent_bar < handle
         function waitbar_update(this,percent_done,msg)
             
             if isempty(this.WB)
-                this.WB = waitbar(percent_done,msg,'name',this.NAME);
+                this.WB = waitbar(percent_done,msg,'name',this.name);
             else
                 if ~isvalid(this.WB)
-                    this.WB = waitbar(percent_done,msg,'name',this.NAME);
+                    this.WB = waitbar(percent_done,msg,'name',this.name);
                 else
                     waitbar(percent_done,this.WB,msg);
                 end
