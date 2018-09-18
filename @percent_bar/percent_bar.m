@@ -35,6 +35,7 @@ classdef percent_bar < handle
         
         CMDLINE_ONLY;
         SHOW_SELFTIME;
+        PROFILING_ON = 1;
         
         datestr_format;
         self_time_warn_percent;
@@ -49,7 +50,7 @@ classdef percent_bar < handle
         
     end
     
-    properties (Access = private)
+    properties %(Access = private)
         
         bar_length_min = 4;
         bar_characters_not_allowed = ['%' , '\'];
@@ -62,6 +63,9 @@ classdef percent_bar < handle
         blink_ON;
         blink_start;
         
+        profiling = struct('percent_done',{},...
+                           't0',{},...
+                           'time_end_est',{});
         
         WB = [];
         
@@ -129,7 +133,11 @@ classdef percent_bar < handle
                 this.start();
             end
             
-            this.MODE(percent_done);
+            time_end_est = this.MODE(percent_done);
+
+            if this.PROFILING_ON
+                this.profiling = [this.profiling , struct('percent_done',percent_done,'t0',t0,'time_end_est',time_end_est)];
+            end
             
             this.t_self = this.t_self + toc(t0);
             
@@ -218,9 +226,9 @@ classdef percent_bar < handle
             
         end
         
-    	function iteration_finished_WAITBAR(this,percent_done)
+    	function time_end_est = iteration_finished_WAITBAR(this,percent_done)
             
-            [ ~ , time_end_est_string ] = this.get_estimated_endtime(percent_done);
+            [ time_end_est , time_end_est_string ] = this.get_estimated_endtime(percent_done);
             msg = time_end_est_string;
             
             this.waitbar_update(percent_done,msg);
@@ -231,7 +239,7 @@ classdef percent_bar < handle
             
         end
         
-        function iteration_finished_CMD_ONLY(this,percent_done)
+        function time_end_est = iteration_finished_CMD_ONLY(this,percent_done)
             
             Hpercent_done = percent_done * 100;
             
@@ -239,7 +247,7 @@ classdef percent_bar < handle
             
             if this.percent_done_old ~= Hpercent_done
                 
-                [ ~ , time_end_est_string ] = this.get_estimated_endtime(Hpercent_done/100);
+                [ time_end_est , time_end_est_string ] = this.get_estimated_endtime(Hpercent_done/100);
                 
                 if this.blink_interval > 0
                     if isempty(this.blink_start)
@@ -298,7 +306,9 @@ classdef percent_bar < handle
                 fprintf(msg);
                 this.N_msg_characters = numel(msg);
                 this.msg_old = msg;
-                
+               
+            else
+                time_end_est = [];
             end
             
         end
