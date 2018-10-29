@@ -13,7 +13,9 @@ function [ tt , ff , full ] = init_tt_ff(fs,N)
     full.tt = tt;
     full.ff = ff;
     full.dt = dt;
-    full.T = T;
     full.df = df;
+    full.T = T;
+    full.fs = fs;
+    full.N = N;
 
 end
