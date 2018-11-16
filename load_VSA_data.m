@@ -13,6 +13,6 @@ function [data,tt,ff] = load_VSA_data(filename)
 %     df = 1/T;
 %     ff = (-fs/2:df:fs/2) - mod(N+1,2)*df/2 + data.InputCenter;
 
-    [ tt , ff , ~ ] = init_tt_ff(fs,N);
+    [ tt , ff , ~ ] = init_tt_ff(N,fs);
 
 end
