@@ -1,5 +1,9 @@
-function [data,tt,ff] = load_VSA_data(filename)
-%[data,tt,ff] = load_VSA_data(filename)
+function [data,tt,ff] = load_VSA_data(filename,filename_calfile)
+%[data,tt,ff] = load_VSA_data(filename,filename_calfile)
+
+    if nargin == 1
+        filename_calfile = {};
+    end
 
     data = load(filename);
 
@@ -8,11 +12,16 @@ function [data,tt,ff] = load_VSA_data(filename)
 
     fs = 1/dt;
 
-%     T = (N-1)*dt;
-%     tt = 0:dt:T;
-%     df = 1/T;
-%     ff = (-fs/2:df:fs/2) - mod(N+1,2)*df/2 + data.InputCenter;
-
     [ tt , ff , ~ ] = misc.init_tt_ff(N,fs);
 
+    if ~isempty(filename_calfile)
+        data.Y = misc.deembed_VSA_data(data,{filename_calfile,filename_calfile});
+    end
+
 end
+
+
+
+
+
+
