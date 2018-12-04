@@ -15,7 +15,7 @@ function [data,tt,ff] = load_VSA_data(filename,filename_calfile)
     [ tt , ff , ~ ] = misc.init_tt_ff(N,fs);
 
     if ~isempty(filename_calfile)
-        data.Y = misc.deembed_VSA_data(data,{filename_calfile,filename_calfile});
+        data.Y = misc.deembed_VSA_data(data,filename_calfile);
     end
 
 end
