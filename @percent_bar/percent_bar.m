@@ -126,7 +126,10 @@ classdef percent_bar < handle
             t0 = tic;
             
             validateattributes(percent_done,{'double','single'},{'scalar','>=',0});
-            assert(percent_done <= 1,'Percentage greater 100 %. Was the counter incremented too often?');
+
+            if percent_done > 1
+                warning('Percentage %.2f %% > 100 %%. Was the counter incremented too often?',100*percent_done);
+            end
             
             if isempty(this.time_start)
                 warning('percent_bar: Not proberly initialized. Time estimates may be wrong. Use init_loop.');
