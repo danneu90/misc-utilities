@@ -1,10 +1,10 @@
 function bin = hex2bin(hex,n)
 
-    if strcmpi(hex(1:2),'0x')
+    if numel(hex) >= 2 && strcmpi(hex(1:2),'0x')
         hex(1:2) = '';
     end
 
-    if strcmpi(hex(1),'x')
+    if numel(hex) >= 1 && strcmpi(hex(1),'x')
         hex(1) = '';
     end
 
