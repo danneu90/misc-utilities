@@ -1,5 +1,5 @@
-function [t_pks,cor] = find_sequence(varargin)
-%[t_pks,cor] = misc.find_sequence(x,xseq,fs,T_holdoff,varargin)
+function [t_pks,cor_pks,peak_prominence,peak_width,cor] = find_sequence(varargin)
+%[t_pks,cor_pks,peak_prominence,peak_width,cor] = misc.find_sequence(x,xseq,fs,T_holdoff,varargin)
 %
 % Uses correlation (matched filter) to slide xseq over x and find multiple 
 % occurrences of xseq within x.
@@ -14,7 +14,7 @@ function [t_pks,cor] = find_sequence(varargin)
 %   real_force  ... Force real valued correlation instead of complex.
 %                   I.e. input real, correlation real. (Default: false)
 %   MinPeakProminence ... Minimum peak prominence in correlation.
-%                   (Default: 3/4 of mean peak prominence.)
+%                   (Default: 3/4 of max peak prominence.)
 %                   TODO: find better solution.
 %
 %   ram_limit_GB .. RAM limit in GByte. (Default: 6)
@@ -122,11 +122,11 @@ real_force_def = false;
     peak_width      = peak_width     (filter_holdoff);
     peak_prominence = peak_prominence(filter_holdoff);
 
-    % drop the last match (will not be entirly within the data)
-    cor_pks(end)         = [];
-    idx_pks(end)         = [];
-    peak_width(end)      = [];
-    peak_prominence(end) = [];
+%     % drop the last match (will not be entirly within the data)
+%     cor_pks(end)         = [];
+%     idx_pks(end)         = [];
+%     peak_width(end)      = [];
+%     peak_prominence(end) = [];
 
     % t_pks
     t_pks = (idx_pks-1)/fs;
@@ -161,6 +161,8 @@ real_force_def = false;
         set(get(gca,'legend'),'location','southeast');
 
         linkaxes(sp,'x');
+        
+        xlim(tt([1,end]));
 
     end
 
