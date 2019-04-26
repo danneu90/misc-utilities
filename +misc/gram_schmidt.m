@@ -46,23 +46,23 @@ end
 
 
 %% EXAMPLE
-% 
-% base_raw = (0:10).'.^(0:3);
+%  
 % base_raw = complex(randn(10,5),randn(10,5));
-%
-%
+% 
+% tt = (-5:01:10).';
+% base_raw = tt.^(0:3);
+% 
 % base_orth = misc.gram_schmidt(base_raw);
 % 
 % norm(base_orth'*base_orth - eye(size(base_orth,2)))
 % 
 % 
+% theta_orth = [1 2 3 4].';
+% theta_raw = (base_orth'*base_raw)\theta_orth;
+% 
+% 
 % figure;
-% sp(1) = subplot(1,2,1);
-% plot(base_raw);
+% plot(tt,base_orth*theta_orth);
+% hold on;
+% plot(tt,base_raw*theta_raw);
 % grid on;
-% 
-% sp(2) = subplot(1,2,2);
-% plot(base_orth);
-% grid on;
-% 
-% linkaxes(sp,'x');
