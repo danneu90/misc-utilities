@@ -1,5 +1,15 @@
 function [theta,D,XX,LSerr] = estimate_LS_polynom_parameters(x,y,order,w)
 %[theta,D,XX,LSerr] = misc.estimate_LS_polynom_parameters(x,y,order,w)
+%
+%Tries to fit a polynomial of 'order' to the real valued signal y(x) with
+%weight w.
+%
+%Output:
+%   theta	...	polynomial coefficients.
+%   D       ... Differentiation operator.
+%   XX      ... Function to restore x base for theta.
+%   LSerr   ... LS error for orders up to the given one.
+
 %% prepare
 
     if nargin < 3
@@ -12,18 +22,17 @@ function [theta,D,XX,LSerr] = estimate_LS_polynom_parameters(x,y,order,w)
     end
 
     if isempty(w)
-        w = ones(size(x));
+        assert(isequal(size(x),size(y)),'x and y must be of same size.');
+    else
+        assert(isequal(size(x),size(y),size(w)),'x, y and w must be of same size.');
     end
 
     assert(size(x,2) == 1,'x must be (one-dimensional) column vector.');
-    assert(isequal(size(x),size(y),size(w)),'x, y and w must be of same size.');
 
 %% start
 
     x = double(x);
     y = double(y);
-
-    W = diag(double(w)/max(abs(double(w))));
 
     % 'conditioning' of x axis
     conditioner_x = max(abs(x));
@@ -40,8 +49,14 @@ function [theta,D,XX,LSerr] = estimate_LS_polynom_parameters(x,y,order,w)
     H_raw = XX(x_cond);
     H_orth = misc.gram_schmidt(H_raw);
 
-    % weighted LS
-    theta_orth = (H_orth'*W*H_orth)\H_orth'*W*y_cond;
+    if isempty(w)
+        % regular LS
+        theta_orth = H_orth\y_cond;
+    else
+        % weighted LS
+        W = sparse(1:numel(w),1:numel(w),double(w)/max(abs(double(w))));
+        theta_orth = (H_orth'*W*H_orth)\H_orth'*W*y_cond;
+    end
 
     % base transformation
     theta_cond = (H_orth'*H_raw)\theta_orth;
