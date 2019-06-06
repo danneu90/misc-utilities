@@ -21,8 +21,6 @@ function [t_pks,cor_pks,peak_prominence,peak_width,cor] = find_sequence(varargin
 %   verboselevel ..  0 nothing
 %                    1 warnings (Default)
 %                    2 plots
-%
-%
 
 
 %%%
