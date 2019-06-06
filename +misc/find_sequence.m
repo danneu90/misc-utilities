@@ -1,5 +1,5 @@
 function [t_pks,cor_pks,peak_prominence,peak_width,cor] = find_sequence(varargin)
-%[t_pks,cor_pks,peak_prominence,peak_width,cor] = misc.find_sequence(x,xseq,fs,T_holdoff,varargin)
+%[t_pks,cor_pks,peak_prominence,peak_width,cor] = misc.find_sequence(x,xseq,fs,varargin)
 %
 % Uses correlation (matched filter) to slide xseq over x and find multiple 
 % occurrences of xseq within x.
