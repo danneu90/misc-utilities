@@ -1,5 +1,5 @@
 function [cor,tt] = correlate_rotate(varargin)
-%corr = correlate_rotate(x,xseq,fs,varargin)
+%[cor,tt] = mysp.correlate_rotate(x,xseq,fs,varargin)
 %
 % Rotates xseq samplewise over x and returns the correlation for each of
 % those points. For limited bandwidth.
@@ -20,6 +20,10 @@ function [cor,tt] = correlate_rotate(varargin)
 %   verboselevel ..  0 nothing
 %                    1 warnings (Default)
 %                    2 plots
+%
+% Output:
+%   cor         ... correlation
+%   tt          ... time indices for correlation
 
 %% input parser
 
@@ -51,6 +55,7 @@ function [cor,tt] = correlate_rotate(varargin)
     if isempty(weights)
         weights = ones(size(xseq));
     end
+    weights = weights/sum(weights);
 
     assert(numel(xseq) <= numel(x),'x must not have a smaller number of element than xseq.');
     assert(isequal(size(xseq),size(weights)),'weights must have the same size as xseq.');
@@ -70,6 +75,9 @@ function [cor,tt] = correlate_rotate(varargin)
     ram_est_GB = 1.5 * 16*numel(xseq)*numel(x)/2^30;
     assert(ram_est_GB < ram_limit_GB,'Too much RAM requested: %.2f GByte. (RAM limited to %.2f GByte.)',ram_est_GB,ram_limit_GB);
 
+    if VERBOSELEVEL
+        warning('RAM requested: %.2f GByte. (RAM limited to %.2f GByte.)',ram_est_GB,ram_limit_GB)
+    end
     if VERBOSELEVEL && fs == 1
         if ~isinf(BW)
             warning('fs is 1 Hz. Take care with BW. (BW = %f Hz)',BW);
@@ -85,7 +93,6 @@ function [cor,tt] = correlate_rotate(varargin)
     if all(weights == weights(1))
         cor = corr(xseq,xshifted);
     else
-        weights = weights/sum(weights);
         m_xshifted = sum(xshifted.*weights);
         m_xseq = sum(xseq.*weights);
 
@@ -119,16 +126,27 @@ function [cor,tt] = correlate_rotate(varargin)
         end
 
         figure;
-        sp(1) = subplot(2,1,1);
-        plot(tt,yx);
-        hold on;
-        plot(ttseq,yxseq);        
+
+        sp(1) = subplot(3,1,1);
+        yyaxis right;
+        plot(ttseq,yxseq);
+        ylabel('xseq');
+        yyaxis left;
+        plot(ttseq,weights);
+        ylim([-0.1 1.1]*max(weights));
+        ylabel('weights');
         grid on;
 
-        sp(2) = subplot(2,1,2);
-        plot(tt,ycor);
+        sp(2) = subplot(3,1,2);
+        plot(tt,yx);
+        grid on;
 
-        linkaxes(sp,'x');
+        sp(3) = subplot(3,1,3);
+        plot(tt,ycor);
+        ylim([-1 1]);
+        grid on;
+
+        linkaxes(sp(1:3),'x');
 
     end
 
