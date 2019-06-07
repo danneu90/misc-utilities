@@ -1,8 +1,8 @@
-function [t_pks,cor_pks,peak_prominence,peak_width,cor] = find_sequence(varargin)
-%[t_pks,cor_pks,peak_prominence,peak_width,cor] = misc.find_sequence(x,xseq,fs,varargin)
+function [cor_pks,t_pks,width_pks,prominence_pks,cor,tt] = find_sequence(varargin)
+%[cor_pks,t_pks,width_pks,prominence_pks,cor,tt] = mysp.find_sequence(x,xseq,fs,varargin)
 %
 % Uses correlation (matched filter) to slide xseq over x and find multiple 
-% occurrences of xseq within x.
+% occurrences of xseq within x using findpeaks.
 %
 % Required:
 %   x           ... Find xseq in x.
@@ -11,20 +11,27 @@ function [t_pks,cor_pks,peak_prominence,peak_width,cor] = find_sequence(varargin
 %   fs          ... Common sample frequency. (Default: 1, i.e. index based)
 % Parameter:
 %   T_holdoff 	... Time that has to pass before a new peak can be detected. (Default: 0);
+%   BW          ... Matched filter bandwidth. If BW < fs, x and xseq will
+%                   be downsampled using resample. Otherwise it will be ignored.
+%                   TAKE CARE that x and xseq are within this bandwidth.
+%   weights     ... Weights xseq according to values of positive real
+%                   weights vector of same size as xseq. Makes it slower.
 %   real_force  ... Force real valued correlation instead of complex.
 %                   I.e. input real, correlation real. (Default: false)
-%   MinPeakProminence ... Minimum peak prominence in correlation.
-%                   (Default: 3/4 of max peak prominence.)
-%                   TODO: find better solution.
+%   peakprominence  Filter for minimum peak prominence in correlation:
+%                   MinPeakProminence = peakprominence * MaxPeakProminence
+%                   (Default: 0)
 %
 %   ram_limit_GB .. RAM limit in GByte. (Default: 6)
 %   verboselevel ..  0 nothing
 %                    1 warnings (Default)
 %                    2 plots
+%
+% Output:
+%   *_pks       ... First 4 output parameters correspond to output of findpeaks.
+%   cor,tt      ... Correspond to output of mysp.correlate_rotate.
 
-error('misc.find_sequence is OBSOLETE. Use mysp.find_sequence instead. However, it has a slightly different syntax.');
-
-%%%
+%%
 VERBOSELEVEL_def = 1;
 ram_limit_def_GB = 6;
 real_force_def = false;
@@ -35,8 +42,10 @@ real_force_def = false;
     p.addRequired('xseq',@(x) validateattributes(x,{'numeric'},{'column'}));
     p.addOptional('fs',1,@(x) validateattributes(x,{'numeric'},{'scalar','positive'}));
     p.addParameter('T_holdoff',0,@(x) validateattributes(x,{'numeric'},{'scalar','nonnegative'}));
+    p.addParameter('BW',inf,@(x) validateattributes(x,{'numeric'},{'scalar','positive'}));
+    p.addParameter('weights',[],@(x) validateattributes(x,{'numeric'},{'real','nonnegative'}));
     p.addParameter('real_force',real_force_def,@(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
-    p.addParameter('MinPeakProminence',[],@(x) validateattributes(x,{'numeric'},{'scalar','nonnegative'}));
+    p.addParameter('peakprominence',0,@(x) validateattributes(x,{'numeric'},{'scalar','nonnegative'}));
     p.addParameter('ram_limit_GB',ram_limit_def_GB,@(x) validateattributes(x,{'numeric'},{'scalar','nonnegative'}));
     p.addParameter('verboselevel',VERBOSELEVEL_def,@(x) validateattributes(x,{'numeric'},{'scalar','nonnegative'}));
 
@@ -46,91 +55,66 @@ real_force_def = false;
     xseq = p.Results.xseq;
     fs = p.Results.fs;
     T_holdoff = p.Results.T_holdoff;
-    MinPeakProminence = p.Results.MinPeakProminence;
+    BW = min(fs,p.Results.BW);
+    weights = p.Results.weights;
+    peakprominence = p.Results.peakprominence;
     VERBOSELEVEL = p.Results.verboselevel;
     ram_limit_GB = p.Results.ram_limit_GB;
     real_force = boolean(p.Results.real_force);
 
-
-    ram_est_GB = 2 * 16*numel(xseq)*(numel(x)-numel(xseq))/2^30;
-    assert(ram_est_GB < ram_limit_GB,'Too much RAM requested: %.2f GByte. (RAM limited to %.2f GByte.)',ram_est_GB,ram_limit_GB);
-
+    if isempty(weights)
+        weights = ones(size(xseq));
+    end
 
     if VERBOSELEVEL && fs == 1 && T_holdoff ~= 0
         warning('fs is 1 Hz. Take care with T_holdoff.');
     end
 
-    N_sample_holdoff = floor(T_holdoff*fs);
-
 %% start
 
     % real/complex
     x = double(x);
+    xseq = double(xseq);
+
     if real_force
         assert(isreal(x),'x must be real. when "''real_force'' = true".');
-    end
-    xseq = double(xseq);
-    if real_force
         assert(isreal(xseq),'xseq must be real. when "''real_force'' = true".');
     end
 
-    % prepare data
-    x_shifted = x((1:numel(xseq)).' + (1:(numel(x) - numel(xseq))));
-    x_shifted = x_shifted - mean(x_shifted);
-    X_shifted = fft(x_shifted,[],1);
-    p_X_shifted = sum(abs(X_shifted).^2);
-    X_shifted = X_shifted ./ sqrt(p_X_shifted);
+    [cor,tt] = mysp.correlate_rotate(x(1:numel(x)-numel(xseq)),xseq,fs,'BW',BW,'weights',weights,'ram_limit_GB',ram_limit_GB,'verboselevel',VERBOSELEVEL);
 
-    % prepare sequence
-    xseq = xseq - mean(xseq);
-    Xsequence = fft(xseq,[],1);
-    p_Xsequence = sum(abs(Xsequence).^2);
-    Xsequence = Xsequence ./ sqrt(p_Xsequence);
+    N_sample_holdoff = floor(T_holdoff*BW);
 
-    % correlation
-    cor_raw = X_shifted'*Xsequence;
     if real_force
-        % imaginary part theoretically must be zero in the real case
-        cor = real(cor_raw);
+        % imaginary part theoretically must be zero anyway in the real case
+        cor_peakfind = real(cor);
     else
-        cor = abs(cor_raw);
+        cor_peakfind = abs(cor);
     end
 
     % find all correlation peaks
-    [cor_pks,idx_pks,peak_width,peak_prominence] = findpeaks(cor,'MinPeakDistance',N_sample_holdoff);
+    [cor_pks,idx_pks,width_pks,prominence_pks] = findpeaks(cor_peakfind,'MinPeakDistance',N_sample_holdoff);
 
     % filter peak promincence
-    if isempty(MinPeakProminence)
-        MinPeakProminence = 3/4*max(peak_prominence);
-    else
+    if peakprominence
+        MinPeakProminence = peakprominence*max(prominence_pks);
         if VERBOSELEVEL
             warning('MinPeakProminence set to %.3f.',MinPeakProminence);
         end
+    else
+        MinPeakProminence = 0;
     end
 
-    filter_peak_prominence = peak_prominence >= MinPeakProminence;
-    cor_pks         = cor_pks        (filter_peak_prominence);
-    idx_pks         = idx_pks        (filter_peak_prominence);
-    peak_width      = peak_width     (filter_peak_prominence);
-    peak_prominence = peak_prominence(filter_peak_prominence);
-
-    % apply holdoff
-    filter_holdoff = diff([0;idx_pks]) >= N_sample_holdoff;
-    cor_pks         = cor_pks        (filter_holdoff);
-    idx_pks         = idx_pks        (filter_holdoff);
-    peak_width      = peak_width     (filter_holdoff);
-    peak_prominence = peak_prominence(filter_holdoff);
-
-%     % drop the last match (will not be entirly within the data)
-%     cor_pks(end)         = [];
-%     idx_pks(end)         = [];
-%     peak_width(end)      = [];
-%     peak_prominence(end) = [];
+    filter_peak_prominence = prominence_pks >= MinPeakProminence;
+    cor_pks         = cor_pks       (filter_peak_prominence);
+    idx_pks         = idx_pks       (filter_peak_prominence);
+    width_pks       = width_pks     (filter_peak_prominence);
+    prominence_pks  = prominence_pks(filter_peak_prominence);
 
     % t_pks
-    t_pks = (idx_pks-1)/fs;
+    t_pks = (idx_pks-1)/BW;
 
-%% plotting
+%% plots
 
     if VERBOSELEVEL > 1
 
@@ -138,7 +122,7 @@ real_force_def = false;
 
         [tt,ff] = misc.init_tt_ff(numel(x),fs);
         [ttseq,ffseq] = misc.init_tt_ff(numel(xseq),fs);
-        [ttcor,ffcor] = misc.init_tt_ff(numel(cor),fs);
+        [ttcor,ffcor] = misc.init_tt_ff(numel(cor),BW);
 
         sp(1) = subplot(3,1,1);
         plot(tt,x);
@@ -153,10 +137,11 @@ real_force_def = false;
         grid on;
 
         sp(3) = subplot(3,1,3);
-        findpeaks(cor,ttcor,'MinPeakProminence',MinPeakProminence,'MinPeakDistance',T_holdoff,'Annotate','extents');
+        findpeaks(cor_peakfind,ttcor,'MinPeakProminence',MinPeakProminence,'MinPeakDistance',T_holdoff,'Annotate','extents');
         hold on;
         plot(t_pks,cor_pks,'x','LineWidth',10);
         grid on;
+        ylim([-1 1]);
         set(get(gca,'legend'),'location','southeast');
 
         linkaxes(sp,'x');
