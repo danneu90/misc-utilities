@@ -72,7 +72,12 @@ function [cor,tt] = correlate_rotate(varargin)
         weights = interp1(tt_xseq,weights,(0:numel(xseq)-1).'/BW,'nearest');
     end
 
-    ram_est_GB = 1.5 * 16*numel(xseq)*numel(x)/2^30;
+    if isreal(x)
+        ram_est_GB = 2 * 8*numel(xseq)*numel(x)/2^30;
+    else
+        ram_est_GB = 1.5 * 16*numel(xseq)*numel(x)/2^30;
+    end
+    ram_est_GB = 1.1*ram_est_GB;
     assert(ram_est_GB < ram_limit_GB,'Too much RAM requested: %.2f GByte. (RAM limited to %.2f GByte.)',ram_est_GB,ram_limit_GB);
 
     if VERBOSELEVEL
