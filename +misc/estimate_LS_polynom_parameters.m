@@ -2,7 +2,7 @@ function [theta,D,XX,LSerr] = estimate_LS_polynom_parameters(x,y,order,w)
 %[theta,D,XX,LSerr] = misc.estimate_LS_polynom_parameters(x,y,order,w)
 %
 %Tries to fit a polynomial of 'order' to the real valued signal y(x) with
-%weight w.
+%weight w (optional).
 %
 %Output:
 %   theta	...	polynomial coefficients.
@@ -33,6 +33,15 @@ function [theta,D,XX,LSerr] = estimate_LS_polynom_parameters(x,y,order,w)
 
     x = double(x);
     y = double(y);
+
+    if any(isnan(y))
+        warning('y contains %.2f %% NaNs. Weights of NaN values will be set to zero.',100*sum(isnan(y))/numel(y));
+        if isempty(w)
+            w = ones(size(y));
+        end
+        w(isnan(y)) = 0;
+        y(isnan(y)) = 0;
+    end
 
     % 'conditioning' of x axis
     conditioner_x = max(abs(x));
