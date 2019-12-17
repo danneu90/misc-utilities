@@ -21,6 +21,10 @@ function [theta,D,XX,LSerr] = estimate_LS_polynom_parameters(x,y,order,w)
         w = [];
     end
 
+    if isempty(x)
+        x = (0:size(y,1)-1).';
+    end
+
     if isempty(w)
         assert(isequal(size(x),size(y)),'x and y must be of same size.');
     else
