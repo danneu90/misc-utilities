@@ -253,7 +253,7 @@ classdef percent_bar < handle
                 end
                 
                 if this.t_self/this.t_tot > this.self_time_warn_percent
-                    warning('percent_bar: self time > %.1f %%',100*this.self_time_warn_percent);
+                    warning('percent_bar: self time > %.1f %% (%.1f sec / %.1f sec = %.1f %%)',100*this.self_time_warn_percent,this.t_self,this.t_tot,100*this.t_self/this.t_tot);
                 end
                 
             end
