@@ -1,5 +1,5 @@
 function [P_dBmperHz,TTspec,FFspec] = get_spectrogram(x,fs,tres,fres,win,Z0)
-%[P_dBmperHz,TTspec,FFspec] = mysp.get_spectrogram(x,fs,tres,fres,[win],[Z0])
+%[P_dBmperHz,TTspec,FFspec] = mysp.get_spectrogram(x,fs,tres,fres,[win=blackmanharris],[Z0=50])
 
     if nargin < 5
         win = [];
