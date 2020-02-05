@@ -14,6 +14,8 @@ function filename_list = list_folder_content(location,varargin)
 %   'folders_only'    ... Returns only folders, no files. Default: false
 %                         Setting both files_only and folders_only true
 %                         will lead to an empty filename_list.
+%   'names_only'      ... Return only output of [~,name,~] = fileparts(fn)
+%                         per file. Default: false
 %
 % Examples:
 % filename_list = misc.list_folder_content(); % Lists everything in current folder using absolute paths.
@@ -26,6 +28,7 @@ function filename_list = list_folder_content(location,varargin)
     relativepath_default = false;
     files_only_default   = false;
     folders_only_default = false;
+    names_only_default   = false;
 
 %% parse input
 
@@ -44,6 +47,7 @@ function filename_list = list_folder_content(location,varargin)
     p.addParameter('relativepath'   ,relativepath_default   ,@(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
     p.addParameter('files_only'     ,files_only_default     ,@(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
     p.addParameter('folders_only'   ,folders_only_default   ,@(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
+    p.addParameter('names_only'     ,names_only_default     ,@(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
 
     p.parse(varargin{:});
 
@@ -51,6 +55,7 @@ function filename_list = list_folder_content(location,varargin)
     relativepath = boolean(p.Results.relativepath);
     files_only = boolean(p.Results.files_only);
     folders_only = boolean(p.Results.folders_only);
+    names_only = boolean(p.Results.names_only);
 
 %% prepare location
 
@@ -131,6 +136,14 @@ function filename_list = list_folder_content(location,varargin)
         filename_list = cellfun(@(x) [folder,x],{dircontent.name},'UniformOutput',false);
     else
         filename_list = {};
+    end
+
+%% apply fileparts to every element
+
+    if names_only
+        for ii = 1:numel(filename_list)
+            [~,filename_list{ii},~] = fileparts(filename_list{ii});
+        end
     end
 
 end
