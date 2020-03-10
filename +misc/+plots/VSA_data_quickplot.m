@@ -1,5 +1,5 @@
 function Fig = VSA_data_quickplot(fn)
-%Fig = misc.VSA_data_quickplot(fn)
+%Fig = misc.plots.VSA_data_quickplot(fn)
 %
 %Example:
 % fn = 'X:\DN\cc2510 trace_old from exchange 2018-05-22\recorded_SYNC_packet.mat';

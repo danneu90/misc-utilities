@@ -1,5 +1,5 @@
 function structarray_out = parfor_metered(loopfun,structarray_in,percent_bar_varargin)
-%structarray_out = parfor_metered(loopfun,structarray_in,percent_bar_varargin[optional])
+%structarray_out = misc.parfor_metered(loopfun,structarray_in,[percent_bar_varargin])
 %
 % "structarray_out(idx) = loopfun(structarray_in(idx))" run in parfor loop 
 % over idx = 1:numel(structarray_in).

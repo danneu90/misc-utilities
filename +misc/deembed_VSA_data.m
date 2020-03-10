@@ -1,5 +1,5 @@
 function Ytd_deemb = deembed_VSA_data(data,filename_calfile)
-%Ytd_deemb = deembed_VSA_data(data,filename_calfile)
+%Ytd_deemb = misc.deembed_VSA_data(data,filename_calfile)
 %
 % data             ... VSA data 
 % filename_calfile ... Char vector or cell array of char vectors. S2P files. (S21 is used.)

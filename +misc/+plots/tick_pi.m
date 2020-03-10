@@ -1,5 +1,5 @@
 function [tick_list,ticklabels_list] = tick_pi(pi_multiple,limits)
-%[tick_list_deg,ticklabels_list] = tick_pi(pi_multiple,limits_deg)
+%[tick_list_deg,ticklabels_list] = misc.plots.tick_pi(pi_multiple,limits_deg)
 
     assert(pi_multiple ~= 0 && ~isnan(pi_multiple) && ~ isinf(pi_multiple),'pi_multiple must be greater than zero.');
 

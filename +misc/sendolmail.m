@@ -1,6 +1,8 @@
 function sendolmail(to,subject,body,attachments)
-%Sends email using MS Outlook. The format of the function is 
-%Similar to the SENDMAIL command.
+%misc.sendolmail(to,subject,body,attachments)
+%
+% Sends email using MS Outlook. The format of the function is similar to
+% the SENDMAIL command.
 
     % Create object and set parameters.
     h = actxserver('outlook.Application');

@@ -1,5 +1,5 @@
 function [Fig,Sparam] = s2p_quickplot(fn)
-%[Fig,Sparam] = misc.s2p_quickplot(fn)
+%[Fig,Sparam] = misc.plots.s2p_quickplot(fn)
 
     Sparam = sparameters(fn);
 

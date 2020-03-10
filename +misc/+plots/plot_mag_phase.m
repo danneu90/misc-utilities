@@ -1,5 +1,5 @@
 function Fig = plot_mag_phase(varargin)
-%Fig = plot_mag_phase(varargin)
+%Fig = misc.plots.plot_mag_phase(varargin)
 %everything almost like plot
 %
 %replace "hold on" with

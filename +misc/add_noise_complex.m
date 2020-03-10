@@ -1,5 +1,6 @@
 function [ x , xn ] = add_noise_complex(xs,SNR_dB)
-%[ x , xn ] = add_noise_complex(xs,SNR_dB)
+%[ x , xn ] = misc.add_noise_complex(xs,SNR_dB)
+%
 % xs is a t-D array. The columns contain signals over time.
 
     assert(size(xs,1) ~= 1,'xs must be t-D signal(s) in first dimension.');

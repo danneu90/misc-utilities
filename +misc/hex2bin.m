@@ -1,4 +1,5 @@
 function bin = hex2bin(hex,n)
+%bin = misc.hex2bin(hex,n)
 
     if numel(hex) >= 2 && strcmpi(hex(1:2),'0x')
         hex(1:2) = '';

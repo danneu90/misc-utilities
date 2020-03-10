@@ -1,5 +1,5 @@
 function [ tt , ff , full ] = init_tt_ff(N,fs)
-%[ tt , ff , full ] = init_tt_ff(N,fs)
+%[ tt , ff , full ] = misc.init_tt_ff(N,fs)
 
     if nargin == 1
         fs = 1;

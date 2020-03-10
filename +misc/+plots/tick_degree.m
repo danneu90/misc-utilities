@@ -1,4 +1,5 @@
 function [tick_list_deg] = tick_degree(tick_granularity_deg,limits_deg)
+%[tick_list_deg] = misc.plots.tick_degree(tick_granularity_deg,limits_deg)
 
     if nargin == 1
         limits_deg = get(gca,'ylim');

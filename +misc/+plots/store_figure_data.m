@@ -1,5 +1,5 @@
 function [filename_base,filename_data,filename_graphic] = store_figure_data(Fig,filename_base)
-%[filename_base,filename_data,filename_graphic] = store_figure_data(Fig,filename_base)
+%[filename_base,filename_data,filename_graphic] = misc.plots.store_figure_data(Fig,filename_base)
 
     filename_base_def = datestr(now,'yyyymmddTHHMMSSFFF');
 

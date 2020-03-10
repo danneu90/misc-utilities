@@ -1,5 +1,5 @@
 function status = confirm_input(question,default_response)
-%status = confirm_input(question,default_response)
+%status = misc.confirm_input(question,default_response)
 
     assert(nargin > 0,['Not enough input arguments. Syntax:' newline 'status = confirm_input(question,default_response)']);
     

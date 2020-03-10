@@ -1,5 +1,5 @@
 function [data,tt,ff] = load_VSA_data(filename,filename_calfile)
-%[data,tt,ff] = load_VSA_data(filename,filename_calfile)
+%[data,tt,ff] = misc.load_VSA_data(filename,filename_calfile)
 
     if nargin == 1
         filename_calfile = {};

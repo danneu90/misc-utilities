@@ -1,5 +1,5 @@
 function filename_list = list_folder_content(location,varargin)
-%filename_list = list_folder_content(location,varargin)
+%filename_list = misc.list_folder_content(location,varargin)
 %Returns 'name' property of the dir(location) result with some filters
 %applied. Folders '.' and '..' are always excluded. Regexps allowed.
 %

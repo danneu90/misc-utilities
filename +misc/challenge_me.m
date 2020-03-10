@@ -1,4 +1,5 @@
 function status = challenge_me(level)
+%status = misc.challenge_me(level)
     if nargin < 1
         level = 1;
     else
