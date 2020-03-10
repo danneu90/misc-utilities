@@ -13,14 +13,17 @@ function structarray_out = parfor_metered(loopfun,structarray_in,percent_bar_var
     percent_bar_varargin = process_percent_bar_varargin(percent_bar_varargin);
     pb = percent_bar(percent_bar_varargin{:});
     
-    try
-        struct_out = loopfun(structarray_in(1));
-    catch ME
-        rethrow(ME);
-    end
-    
     N = numel(structarray_in);
-    structarray_out = repmat(struct_out,size(structarray_in));
+
+    IS_NARGOUT = boolean(nargout);
+    if IS_NARGOUT
+        try
+            struct_out = loopfun(structarray_in(1));
+        catch ME
+            rethrow(ME);
+        end
+        structarray_out = repmat(struct_out,size(structarray_in));
+    end
     
     cnt = 1;
     D = parallel.pool.DataQueue;
@@ -28,7 +31,11 @@ function structarray_out = parfor_metered(loopfun,structarray_in,percent_bar_var
     
     pb.init_loop();
     parfor idx = 1:N
-        structarray_out(idx) = loopfun(structarray_in(idx));
+        if IS_NARGOUT
+            structarray_out(idx) = loopfun(structarray_in(idx));
+        else
+            loopfun(structarray_in(idx))
+        end
         send(D,idx);
     end
     
