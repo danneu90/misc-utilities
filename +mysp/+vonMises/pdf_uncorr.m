@@ -15,8 +15,8 @@ function [pdfvM,log_pdfvM] = pdf_uncorr(x,kappa,mu)
         mu = 0;
     end
 
-    assert(isequal(size(x),size(kappa)) || numel(kappa) == 1,'kappa must be either one element or of equal size as x');
-    assert(isequal(size(x),size(mu)) || numel(mu) == 1,'mu must be either one element or of equal size as x');
+    assert(isequal(size(x),size(kappa)) || numel(kappa) == 1,'kappa must be either one element or of equal size as x.');
+    assert(isequal(size(x),size(mu)) || numel(mu) == 1,'mu must be either one element or of equal size as x.');
 
     if numel(kappa) == 1
         kappa = repmat(kappa,size(x));
