@@ -199,13 +199,13 @@ classdef percent_bar < handle
             addParameter(p,'char_blink',      '.', @(x) ischar(x) && isscalar(x) && ~ismember(x,this.bar_characters_not_allowed));
             addParameter(p,'bar_length',      100, @(x) isnumeric(x) && isscalar(x));
             addParameter(p,'blink_interval',    0, @(x) isnumeric(x) && isscalar(x));
-            addParameter(p,'keep_waitbar_open', 0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
+            addParameter(p,'keep_waitbar_open', 0, @(x) validateattributes(logical(x),{'logical'},{'scalar'}));
             addParameter(p,'name',  'Percent Bar', @(x) validateattributes(x,{'string','char'},{'scalartext'}));
             
-            addParameter(p,'selftime_show',   0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
-            addParameter(p,'CMDLINE_ONLY',  0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
-            addParameter(p,'PROFILING_ON',  0, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
-            addParameter(p,'datestr_format','dd.mm.yyyy HH:MM', @(x) all(boolean(datestr(now,x))));
+            addParameter(p,'selftime_show',   0, @(x) validateattributes(logical(x),{'logical'},{'scalar'}));
+            addParameter(p,'CMDLINE_ONLY',  0, @(x) validateattributes(logical(x),{'logical'},{'scalar'}));
+            addParameter(p,'PROFILING_ON',  0, @(x) validateattributes(logical(x),{'logical'},{'scalar'}));
+            addParameter(p,'datestr_format','dd.mm.yyyy HH:MM', @(x) all(logical(datestr(now,x))));
             addParameter(p,'warn_high_selftime',0.1, @(x) validateattributes(x,{'numeric'},{'scalar','>=',0,'<=',1}));
             
             parse(p,Hvarargin{:});
@@ -218,9 +218,9 @@ classdef percent_bar < handle
             this.blink_interval = p.Results.blink_interval;
             this.keep_waitbar_open = p.Results.keep_waitbar_open;
             
-            this.CMDLINE_ONLY = boolean(p.Results.CMDLINE_ONLY);
-            this.PROFILING_ON = boolean(p.Results.PROFILING_ON);
-            this.SHOW_SELFTIME = boolean(p.Results.selftime_show);
+            this.CMDLINE_ONLY = logical(p.Results.CMDLINE_ONLY);
+            this.PROFILING_ON = logical(p.Results.PROFILING_ON);
+            this.SHOW_SELFTIME = logical(p.Results.selftime_show);
             this.datestr_format = p.Results.datestr_format;
             this.self_time_warn_percent = p.Results.warn_high_selftime;
             this.name = p.Results.name;
