@@ -38,8 +38,8 @@ classdef timefrequencybase
             p.addOptional('fs',1,@(x) validateattributes(x,{'numeric'},{'scalar','real','nonnegative'}));
             p.addParameter('t0',0,@(x) validateattributes(x,{'numeric'},{'scalar','real'}));
             p.addParameter('fc',0,@(x) validateattributes(x,{'numeric'},{'scalar','real','positive'}));
-            p.addParameter('TIME_CENTERED', false, @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
-            p.addParameter('FREQ_CENTERED', true,  @(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
+            p.addParameter('TIME_CENTERED', false, @(x) validateattributes(logical(x),{'logical'},{'scalar'}));
+            p.addParameter('FREQ_CENTERED', true,  @(x) validateattributes(logical(x),{'logical'},{'scalar'}));
 
             p.parse(N,varargin{:});
 
@@ -47,8 +47,8 @@ classdef timefrequencybase
             obj.N = p.Results.N;
             obj.t0 = p.Results.t0;
             obj.fc = p.Results.fc;
-            obj.TIME_CENTERED = boolean(p.Results.TIME_CENTERED);
-            obj.FREQ_CENTERED = boolean(p.Results.FREQ_CENTERED);
+            obj.TIME_CENTERED = logical(p.Results.TIME_CENTERED);
+            obj.FREQ_CENTERED = logical(p.Results.FREQ_CENTERED);
 
         end
 

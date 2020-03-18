@@ -15,7 +15,7 @@ function structarray_out = parfor_metered(loopfun,structarray_in,percent_bar_var
     
     N = numel(structarray_in);
 
-    IS_NARGOUT = boolean(nargout);
+    IS_NARGOUT = logical(nargout);
     if IS_NARGOUT
         try
             struct_out = loopfun(structarray_in(1));

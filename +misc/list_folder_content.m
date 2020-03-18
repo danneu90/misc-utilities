@@ -44,18 +44,18 @@ function filename_list = list_folder_content(location,varargin)
     p = inputParser;
 
     p.addParameter('ignore_chars'   ,ignore_chars_default   ,@(x) validateattributes(x,{'char','string'},{'scalartext'}));
-    p.addParameter('relativepath'   ,relativepath_default   ,@(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
-    p.addParameter('files_only'     ,files_only_default     ,@(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
-    p.addParameter('folders_only'   ,folders_only_default   ,@(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
-    p.addParameter('names_only'     ,names_only_default     ,@(x) validateattributes(boolean(x),{'logical'},{'scalar'}));
+    p.addParameter('relativepath'   ,relativepath_default   ,@(x) validateattributes(logical(x),{'logical'},{'scalar'}));
+    p.addParameter('files_only'     ,files_only_default     ,@(x) validateattributes(logical(x),{'logical'},{'scalar'}));
+    p.addParameter('folders_only'   ,folders_only_default   ,@(x) validateattributes(logical(x),{'logical'},{'scalar'}));
+    p.addParameter('names_only'     ,names_only_default     ,@(x) validateattributes(logical(x),{'logical'},{'scalar'}));
 
     p.parse(varargin{:});
 
     ignore_chars = p.Results.ignore_chars;
-    relativepath = boolean(p.Results.relativepath);
-    files_only = boolean(p.Results.files_only);
-    folders_only = boolean(p.Results.folders_only);
-    names_only = boolean(p.Results.names_only);
+    relativepath = logical(p.Results.relativepath);
+    files_only = logical(p.Results.files_only);
+    folders_only = logical(p.Results.folders_only);
+    names_only = logical(p.Results.names_only);
 
 %% prepare location
 

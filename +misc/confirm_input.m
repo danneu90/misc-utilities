@@ -7,7 +7,7 @@ function status = confirm_input(question,default_response)
         default_response = false;
     end
 
-    if boolean(default_response)
+    if logical(default_response)
         resp_def = 'Y';
     else
         resp_def = 'N';
@@ -22,7 +22,7 @@ function status = confirm_input(question,default_response)
 
         [X,tf] = str2num(resp);
         if tf
-            status = all(boolean(abs(X)));
+            status = all(logical(abs(X)));
             break;
         else
             switch lower(resp)
@@ -43,5 +43,5 @@ function status = confirm_input(question,default_response)
             end
         end
     end
-    status = boolean(status);
+    status = logical(status);
 end
