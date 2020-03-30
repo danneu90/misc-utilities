@@ -1,21 +1,22 @@
-function [ tt , ff , full ] = init_tt_ff(N,fs)
-%[ tt , ff , full ] = misc.init_tt_ff(N,fs)
+function [ tt , ff , full , timefrequencybase] = init_tt_ff(N,fs)
+%[ tt , ff , full , timefrequencybase] = misc.init_tt_ff(N,fs)
+
+    timefrequencybase_class = 'mysp.timefrequencybase';
 
     if nargin == 1
         fs = 1;
     end
 
     dt = 1/fs;
-    T = (N-1)*dt;
+    T = N*dt;
     df = 1/T;
 
-    tt = (0:dt:T).';
-    
+    nn = (0:N-1).';
+    tt = nn * dt;
     if nargout > 1
-        ff = (-fs/2:df:fs/2).' - mod(N-1,2)*df/2;
-        ff = ff - ff(abs(ff) == min(abs(ff)));
+        ff = (nn - (N - mod(N,2))/2) * df;
     end
-    
+
     if nargout > 2
         full.tt = tt;
         full.ff = ff;
@@ -24,6 +25,20 @@ function [ tt , ff , full ] = init_tt_ff(N,fs)
         full.T = T;
         full.fs = fs;
         full.N = N;
+
+        timefrequencybase = [];
+        if exist(timefrequencybase_class,"class")
+            timefrequencybase_class_call = sprintf('%s(N,fs)',timefrequencybase_class);
+            try
+                timefrequencybase = eval(timefrequencybase_class_call);
+                full.timefrequencybase = timefrequencybase;
+            catch ME
+                full.ME = ME;
+                warning('Class call ''%s'' failed with message "%s". Added ME to output struct.',timefrequencybase_class_call,ME.message);
+            end
+        else
+            warning('Class ''%s'' not found.',timefrequencybase_class);
+        end
     end
-    
+
 end

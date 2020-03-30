@@ -11,13 +11,13 @@ classdef timefrequencybase
 %       'FREQ_CENTERED' ... If true, frequency vector is centered about fc. If false, frequency vector starts at fc.
 
     properties
-        N(1,1)  {mustBeNumeric(N), mustBeGreaterThan(N,0), mustBeReal(N), mustBeInteger(N)} = 1; % Number of samples.
+        N(1,1)  {mustBeNumeric(N), mustBeGreaterThanOrEqual(N,0), mustBeReal(N), mustBeInteger(N)}; % Number of samples.
         fs(1,1) {mustBeNumeric(fs),mustBeGreaterThan(fs,0),mustBeReal(fs)} = 1; % Sampling rate.
         t0(1,1) {mustBeNumeric(t0),mustBeReal(t0)} = 0; % Zero time.
         fc(1,1) {mustBeNumeric(fc),mustBeReal(fc)} = 0; % Center frequency.
     end
 
-    properties (Dependent)
+    properties (Dependent = true, Transient = true)
         T; % Total duration.
         dt; % Time resolution.
         df; % Frequency resolution.
@@ -30,7 +30,12 @@ classdef timefrequencybase
         FREQ_CENTERED(1,1) logical; % If true, frequency vector is centered about fc. If false, frequency vector starts at fc.
     end
 
+    properties (Access = private, Transient = true)
+        nn;
+    end
+
     methods
+
         function obj = timefrequencybase(N,varargin)
 
             p = inputParser;
@@ -52,8 +57,13 @@ classdef timefrequencybase
 
         end
 
+        function obj = set.N(obj,N)
+            obj.N = N;
+            obj.nn = (0:N-1).';
+        end
+
         function T = get.T(obj)
-            T = (obj.N - 1)*obj.dt;
+            T = obj.N*obj.dt;
         end
 
         function dt = get.dt(obj)
@@ -64,21 +74,29 @@ classdef timefrequencybase
             df = 1/obj.T;
         end
 
-        function tt = get.tt(obj)
-            if obj.TIME_CENTERED
-                tt = ((-(obj.N-1):2:(obj.N-1)).' - mod(obj.N-1,2)) * obj.dt/2;
-            else
-                tt = (0:obj.N-1).'*obj.dt;
+        function nn = get.nn(obj)
+            if ~isempty(obj.nn)
+                nn = obj.nn;
+            else % for loading of instance
+                nn = (0:obj.N-1).';
             end
+        end
+
+        function tt = get.tt(obj)
+            nn_loc = obj.nn;
+            if obj.TIME_CENTERED
+                nn_loc = nn_loc - (obj.N - mod(obj.N,2))/2;
+            end
+            tt = nn_loc * obj.dt;
             tt = tt + obj.t0;
         end
 
         function ff = get.ff(obj)
+            nn_loc = obj.nn;
             if obj.FREQ_CENTERED
-                ff = ((-(obj.N-1):2:(obj.N-1)).' - mod(obj.N-1,2)) * obj.df/2;
-            else
-                ff = (0:obj.N-1).'*obj.df;
+                nn_loc = nn_loc - (obj.N - mod(obj.N,2))/2;
             end
+            ff = nn_loc * obj.df;
             ff = ff + obj.fc;
         end
 
