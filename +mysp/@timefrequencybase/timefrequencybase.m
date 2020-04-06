@@ -5,10 +5,16 @@ classdef timefrequencybase
 %   N   ... Number of samples.
 %   fs  ... Sampling rate. (Optional. Default = 1)
 %   varargin:
-%       't0'            ... Zero time.
-%       'fc'            ... Center frequency.
-%       'TIME_CENTERED' ... If true, time vector is centered about t0. If false, time vector starts at t0.
-%       'FREQ_CENTERED' ... If true, frequency vector is centered about fc. If false, frequency vector starts at fc.
+%       't0'            ... Zero time. (Default = 0)
+%       'fc'            ... Center frequency. (Default = 0)
+%       'TIME_CENTERED' ... If true, time vector is centered about t0. (Use fftshift for data.)
+%                           If false, time vector starts at t0.
+%                           (Default = false)
+%       'FREQ_CENTERED' ... If true, frequency vector is centered about fc. (Use fftshift for data.)
+%                           If false, frequency vector starts at fc.
+%                           (Default = false)
+%
+% See also fftshift, misc.init_tt_ff.
 
     properties
         N(1,1)  {mustBeNumeric(N), mustBeGreaterThanOrEqual(N,0), mustBeReal(N), mustBeInteger(N)}; % Number of samples.
