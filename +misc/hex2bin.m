@@ -9,7 +9,7 @@ function bin = hex2bin(hex,n)
         hex(1) = '';
     end
 
-    dec = hex2dec(hex);
+    dec = hex2dec(strrep(hex,' ',''));
 
     if nargin == 2
         bin = dec2bin(dec,n);
