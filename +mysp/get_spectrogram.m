@@ -22,6 +22,7 @@ function [P_dBmperHz,TTspec,FFspec] = get_spectrogram(x,fs,tres,fres,win,Z0)
     ttspec = (idxttspec(:)-1)/fs;
     
     Nfres = ceil(fs/fres);
+    assert(Nfres > 1,'fres (= %s) must be smaller than fs (= %s).',misc.unit_parser(fres,'unit','hz'),misc.unit_parser(fs,'unit','hz'));
     
     [~,ffspec] = misc.init_tt_ff(Nfres,fs);
 
