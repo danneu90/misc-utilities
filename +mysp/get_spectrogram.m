@@ -16,7 +16,14 @@ function [P_dBmperHz,TTspec,FFspec] = get_spectrogram(x,fs,tres,fres,win,Z0)
         Z0 = 50;
     end
 
+    assert(iscolumn(x),'x must be column vector.');
+    assert(isscalar(fs)   && fs   > 0,'fs must be non-negative scalar.');
+    assert(isscalar(tres) && tres > 0,'tres must be non-negative scalar.');
+    assert(isscalar(fres) && fres > 0,'fres must be non-negative scalar.');
+    assert(isscalar(Z0)   && Z0   > 0,'Z0 must be non-negative scalar.');
+
     Ntres = floor(tres*fs);
+    assert(Ntres > 0,'tres (= %s) must be greater than or equal 1/fs (= 1/(%s) = %s).',misc.unit_parser(tres,'unit','s'),misc.unit_parser(fs,'unit','hz'),misc.unit_parser(1/fs,'unit','s'));
 
     idxttspec = 1:Ntres:numel(x);
     ttspec = (idxttspec(:)-1)/fs;
