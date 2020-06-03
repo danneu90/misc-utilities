@@ -11,7 +11,8 @@ function [Fig,cb] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims)
 
     P_dBm = P_dBmperHz + 10*log10(abs(fres));
 
-    P_dBm_minmax = [min(P_dBm(:)) , max(P_dBm(:))];
+    P_dBm_minmax = [ min(P_dBm(~isinf(P_dBm)),[],'all','omitnan') , ...
+                     max(P_dBm(~isinf(P_dBm)),[],'all','omitnan') ];
     P_dBm_lims(isinf(P_dBm_lims)) = P_dBm_minmax(isinf(P_dBm_lims));
 
     P_dBm(P_dBm > max(P_dBm_lims)) = nan;
