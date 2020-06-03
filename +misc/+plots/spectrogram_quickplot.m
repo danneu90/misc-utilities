@@ -3,14 +3,9 @@ function [Fig,cb] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims)
 
     if nargin < 5
         P_dBm_lims = [];
-        warning('P_dBm_lims set to default = [-inf,inf].');
     end
-    if isempty(P_dBm_lims)
-        P_dBm_lims = [-inf , inf];
-    else
-        P_dBm_lims = [min(P_dBm_lims) , max(P_dBm_lims)];
-        assert(P_dBm_lims(1) < P_dBm_lims(2),'P_dBm_lims must contain at least two different values. min and max will be used as limits.');
-    end
+    P_dBm_lims = misc.parse_limits(P_dBm_lims,[-inf inf],'name','P_dBm_lims','verbose',true);
+
 
     [P_dBmperHz,TTspec,FFspec] = mysp.get_spectrogram(x,fs,tres,fres);
 
@@ -24,7 +19,7 @@ function [Fig,cb] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims)
 
     Fig = figure;
     surf(TTspec/1e-3,FFspec/1e6,P_dBm,'LineStyle','none');
-%     view(2);
+    view(2);
     xlabel('t (ms)');
     ylabel('f (MHz)');
     cb = colorbar;
