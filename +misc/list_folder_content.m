@@ -57,6 +57,10 @@ function filename_list = list_folder_content(location,varargin)
     folders_only = logical(p.Results.folders_only);
     names_only = logical(p.Results.names_only);
 
+    if isStringScalar(location)
+        location = char(location);
+    end
+
 %% prepare location
 
     if isempty(location) % empty location or '.' or '..'
