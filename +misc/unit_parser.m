@@ -22,6 +22,8 @@ function [out_strings,isvalue] = unit_parser(values,varargin)
 
     [unit,isvalue] = check_unit(unit);
 
+    assert(~isempty(values) && ~any(isnan(values)),'Input value must not be none or empty.');
+
     values = double(values);
     if isvalue.byte
         range_exps = 0:8;
