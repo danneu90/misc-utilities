@@ -53,13 +53,8 @@ function [filename_base,filename_data,filename_graphic] = store_figure_data(Fig,
     filename_data = [filename_base,'.fig'];
     filename_graphic = [filename_base,'.png'];
 
-    savefig(Fig,filename_data);
     print(Fig,filename_graphic,'-dpng','-r400');
+    savefig(Fig,filename_data,'compact');
 
 end
-
-
-
-
-
 
