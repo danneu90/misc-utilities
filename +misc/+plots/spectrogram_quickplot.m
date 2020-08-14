@@ -1,8 +1,10 @@
-function [Fig,cb] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims)
-%[Fig,cb] = misc.plots.spectrogram_quickplot(x,fs,tres,fres,[P_dBm_lims=[-inf,inf]])
+function [Fig,cb,data] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims)
+%[Fig,cb,data] = misc.plots.spectrogram_quickplot(x,fs,tres,fres,[P_dBm_lims=[-inf,inf]])
 %
 % If instance of mysp.timefrequencybase is given instead of fs, parameters
 % fs, t0 and fc are used to place the spectrogram accordingly.
+%
+% Output 'data' contains the z axis (P_dBm) and timefrequencybases for x,y.
 %
 % See also mysp.timefrequencybase.
 
@@ -42,10 +44,23 @@ function [Fig,cb] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims)
     view(2);
     xlabel('t (ms)');
     ylabel('f (MHz)');
-    cb = colorbar;
-    cb.Label.String = 'P (dBm)';
+%     cb = colorbar;
+%     cb.Label.String = 'P (dBm)';
     zlim(P_dBm_lims);
-    cb.Limits = P_dBm_lims;
+%     cb.Limits = P_dBm_lims;
     title('power spectrum');
+cb = [];
+    if nargout > 2
+        data.P_dBm = P_dBm;
+
+        data.tf.time = mysp.timefrequencybase(size(TTspec,2),1/diff(TTspec(1,1:2)));
+        data.tf.time.fc = fc;
+        data.tf.time.t0 = t0;
+
+        N_ff = size(FFspec,1);
+        data.tf.freq = mysp.timefrequencybase(N_ff,N_ff*diff(FFspec(1:2,1)));
+        data.tf.freq.fc = fc;
+        data.tf.freq.t0 = t0;
+    end
 
 end
