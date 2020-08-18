@@ -1,5 +1,13 @@
 function fn = export_pgf_data(fn,sep,varargin)
 %fn = mypgfplots.export_pgf_data(fn,sep,varargin)
+%
+%   fn  ... output filename
+%   sep ... separator
+%   varargin    ... columns in pairs {'title1',data1,'title2',data2, ...}
+%
+% Example:
+% mypgfplots.export_pgf_data(fn_out,' ','t_ms',xtmp,'f_MHz',ytmp,'P_dBm',ztmp)
+
 
 %%
 % clc;
