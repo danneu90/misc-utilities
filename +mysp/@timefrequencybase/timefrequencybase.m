@@ -29,6 +29,9 @@ classdef timefrequencybase
         df; % Frequency resolution.
         tt; % Time vector.
         ff; % Frequency vector.
+
+        t_start; % first time sample
+        t_stop;  % last time sample
     end
 
     properties
@@ -104,6 +107,17 @@ classdef timefrequencybase
             end
             ff = nn_loc * obj.df;
             ff = ff + obj.fc;
+        end
+
+        function t_start = get.t_start(obj)
+            t_start = obj.t0;
+            if obj.TIME_CENTERED
+                t_start = t_start - obj.dt * (obj.N - mod(obj.N,2))/2;
+            end
+        end
+
+        function t_stop = get.t_stop(obj)
+            t_stop = obj.t_start + obj.T - obj.dt;
         end
 
     end
