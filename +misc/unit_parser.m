@@ -20,10 +20,20 @@ function [out_strings,isvalue] = unit_parser(values,varargin)
     unit = char(p.Results.unit);
     precision = p.Results.precision;
 
+    % check units
     [unit,isvalue] = check_unit(unit);
 
-    assert(~isempty(values) && ~any(isnan(values)),'Input value must not be none or empty.');
+    % special cases
+    if isempty(values)
+        out_strings = string(['[] ',unit]);
+        return;
+    end
+    idxnans = isnan(values);
+    idxinfpos = values > 0 & isinf(values);
+    idxinfneg = values < 0 & isinf(values);
+    values(idxinfpos | idxinfneg) = 0;
 
+    % analyzing
     values = double(values);
     if isvalue.byte
         range_exps = 0:8;
@@ -35,7 +45,7 @@ function [out_strings,isvalue] = unit_parser(values,varargin)
     elseif isvalue.dB
         range_exps = 0;
         range = 1;
-        prefix = [""];
+        prefix = "";
     else
         range_exps = -8:8;
         range = 10.^(3*range_exps);
@@ -74,6 +84,11 @@ function [out_strings,isvalue] = unit_parser(values,varargin)
 
     value_strings(value_strings.endsWith('.')) = ...
         value_strings(value_strings.endsWith('.')).append('0');
+
+    % format output
+    value_strings(idxnans) = "NaN";
+    value_strings(idxinfpos) = "Inf";
+    value_strings(idxinfneg) = "-Inf";
 
     out_strings = value_strings.append(' ');
     out_strings = out_strings.append(prefixes);
