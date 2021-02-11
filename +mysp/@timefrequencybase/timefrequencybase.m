@@ -39,7 +39,7 @@ classdef timefrequencybase
         FREQ_CENTERED(1,1) logical; % If true, frequency vector is centered about fc. If false, frequency vector starts at fc.
     end
 
-    properties (Access = private, Transient = true)
+    properties (SetAccess = private, Hidden = true, Transient = true)
         nn;
     end
 
@@ -49,9 +49,9 @@ classdef timefrequencybase
 
             p = inputParser;
             p.addRequired('N',@(x) assert(x == round(x) && x > 0 && isscalar(N),'N must be nonegative scalar integer.'));
-            p.addOptional('fs',1,@(x) validateattributes(x,{'numeric'},{'scalar','real','nonnegative'}));
+            p.addOptional('fs',1,@(x) validateattributes(x,{'numeric'},{'scalar','real','positive'}));
             p.addParameter('t0',0,@(x) validateattributes(x,{'numeric'},{'scalar','real'}));
-            p.addParameter('fc',0,@(x) validateattributes(x,{'numeric'},{'scalar','real','positive'}));
+            p.addParameter('fc',0,@(x) validateattributes(x,{'numeric'},{'scalar','real','nonnegative'}));
             p.addParameter('TIME_CENTERED', false, @(x) validateattributes(logical(x),{'logical'},{'scalar'}));
             p.addParameter('FREQ_CENTERED', true,  @(x) validateattributes(logical(x),{'logical'},{'scalar'}));
 
