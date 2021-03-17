@@ -10,6 +10,8 @@ function [out_strings] = unit_parser_time(values,SHORT)
 
     assert(all(values >= 0,'all') & isreal(values),'Time input must be positive real numbers.');
 
+    values = round(values);
+
     str_sep = ", ";
     str_plr = "s";
 
@@ -34,7 +36,7 @@ function [out_strings] = unit_parser_time(values,SHORT)
             t(ii) = floor(tvalue/T(ii));
             tvalue = tvalue - t(ii)*T(ii);
         end
-        t(end+1) = round(tvalue);
+        t(end+1) = tvalue;
 
         if any(t > 0)
             tstring = "";
@@ -43,6 +45,9 @@ function [out_strings] = unit_parser_time(values,SHORT)
                     tstring = tstring.append(sprintf('%u %s',t(ii),str_T(ii)));
                     if ~SHORT && t(ii) > 1
                         tstring = tstring.append(str_plr);
+                    end
+                    if ~any(t(ii+1:end)) % this was the last non-zero value
+                        break;
                     end
                     if ii < numel(t)
                         tstring = tstring.append(str_sep);
