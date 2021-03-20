@@ -17,35 +17,80 @@ classdef pspace
     methods
 
         function obj = pspace(varargin)
-            while ~isempty(varargin)
-                if isa(varargin{1},'pspace.param')
-                    obj = obj.add_param(varargin{1});
-                    varargin(1) = [];
-                else
-                    assert(numel(varargin) >= 2,'Name and values must come in pairs.');
-                    obj = obj.add_param(varargin{1},varargin{2});
-                    varargin(1:2) = [];
+            if isa(varargin,'pspace.pspace') && numel(varargin) == 1
+                obj = varargin;
+            else
+                while ~isempty(varargin)
+                    if isa(varargin{1},'pspace.param')
+                        obj = obj.add_param(varargin{1});
+                        varargin(1) = [];
+                    else
+                        assert(numel(varargin) >= 2,'Name and values must come in pairs.');
+                        obj = obj.add_param(varargin{1},varargin{2});
+                        varargin(1:2) = [];
+                    end
                 end
             end
         end
 
-        function pspace_lin = linearize(obj)
+        function disp(obj)
+            builtin('disp',obj);
+            if numel(obj) == 1 && obj.Ncomb == 1
+                hnames = obj.names;
+                hnames = hnames.pad(max(hnames.strlength),'right',' ');
+                for ii = 1:obj.Nparam
+                    fprintf('\t%s = %s\n',hnames(ii),string(evalc('disp(obj.param_list(ii).values)')).strip);
+                end
+                fprintf('\n');
+            end
+        end
+
+        function [psp,hash] = get_elem(obj,ind)
+            sz = obj.Nvalues;
+            sub = cell(numel(sz),1);
+            [sub{:}] = ind2sub(sz,ind);
+            psp = repmat(obj,size(ind));
+            hash = strings(size(ind));
+            for jj = 1:numel(psp)
+                for ii = 1:psp(jj).Nparam
+                    psp(jj).param_list(ii).values = psp(jj).param_list(ii).values(sub{ii}(jj));
+                end
+                if nargout > 1
+                    hash(jj) = psp(jj).hash();
+                end
+            end
+        end
+
+        function [sub] = find_values(obj,varargin)
+            ps = pspace.pspace(varargin{:});
+            sub = cell(obj.Nparam,1);
+            for ii = 1:obj.Nparam
+                sub{ii} = (1:obj.Nvalues(ii)).';
+            end
+            for ii = 1:ps.Nparam
+                [prm,idx_param] = obj.find_param(ps.names(ii));
+                sub{idx_param} = find(ismember(prm.values,ps.param_list(ii).values));
+            end
+        end
+
+        function pspace_exp = expand(obj)
             if obj.Ncomb == 1
-                pspace_lin = obj;
+                pspace_exp = obj;
             else
                 idx_prm = find([obj.param_list.N] > 1,1,'first');
                 prm = obj.param_list(idx_prm);
-                pspace_lin = pspace.pspace.empty();
+                pspace_exp = pspace.pspace.empty();
                 for ii = 1:prm.N
                     pspace_tmp = obj;
                     pspace_tmp.param_list(idx_prm).values = prm.values(ii);
-                    pspace_lin = [pspace_lin;pspace_tmp.linearize()];
+                    pspace_exp = cat(idx_prm,pspace_exp,pspace_tmp.expand());
                 end
             end
         end
 
-        function param = find_param(obj,name)
-            param = obj.param_list(ismember(obj.names,name));
+        function [param,idx_param] = find_param(obj,name)
+            idx_param = find(ismember(obj.names,name));
+            param = obj.param_list(idx_param);
             if isempty(param)
                 str_err = sprintf("Could not fine '%s'.",name);
                 is_similar = contains(lower(obj.names),lower(name));
@@ -95,31 +140,49 @@ classdef pspace
             end
         end
 
-        function [hash,pspace_lin] = hash(obj)
-            [str,pspace_lin] = obj.set_target_parameters();
-            hash = strings(numel(str),1);
+        function [hash,pspace_exp] = hash(obj)
+            if numel(obj) == 1
+                [str,pspace_exp] = obj.set_target_parameters();
+            else
+                str = cell(size(obj));
+                for ii = 1:numel(str)
+                    assert(obj(ii).Ncomb == 1,'Can only hash arrays if already expanded.');
+                    str{ii} = obj(ii).set_target_parameters();
+                end
+                pspace_exp = obj;
+                str = cell2mat(str);
+            end
+            hash = strings(size(str));
             for ii = 1:numel(str)
                 hash(ii) = misc.DataHash(str(ii));
             end
         end
 
-        function pspace = find_hash(obj,hash)
+        function [pspc,sub] = find_hash(obj,hash)
             if numel(hash) == 1 && isa(hash,'pspace.pspace') && hash.Ncomb == 1
                 hash = hash.hash();
             end
-            [hash_all,pspace_lin] = obj.hash();
-            pspace = pspace_lin(ismember(hash_all,hash));
+            [hash_all,pspace_exp] = obj.hash();
+            sz = size(hash_all);
+            sub = cell(numel(sz),1);
+            [sub{:}] = ind2sub(sz,find(hash_all == hash));
+            pspc = pspace_exp(sub{:});
         end
 
-        function [target,pspace_lin] = set_target_parameters(obj,target)
+        function [target,pspace_exp] = set_target_parameters(obj,target)
             if nargin < 2
                 target = struct();
             end
-            pspace_lin = obj.linearize();
-            target = repmat(target,[numel(pspace_lin),1]);
-            for ii = 1:numel(pspace_lin)
-                for jj = 1:pspace_lin(ii).Nparam
-                    prm = pspace_lin(ii).param_list(jj);
+            if obj.Ncomb > 1
+                pspace_exp = obj.expand();
+            else
+                pspace_exp = obj;
+            end
+            sz = size(pspace_exp);
+            target = repmat(target,sz);
+            for ii = 1:numel(pspace_exp)
+                for jj = 1:pspace_exp(ii).Nparam
+                    prm = pspace_exp(ii).param_list(jj);
                     target(ii).(prm.name) = prm.values;
                 end
             end
