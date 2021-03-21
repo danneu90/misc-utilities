@@ -21,7 +21,18 @@
 % - waitbar window is opened at initialization
 
 classdef percent_bar < handle
-    
+
+    properties
+
+        CMDLINE_ONLY (1,1) logical = false;
+        SHOW_SELFTIME (1,1) logical = false;
+        PROFILING_ON (1,1) logical = false;
+        
+        percent_done_steps (1,1) double {mustBeGreaterThanOrEqual(percent_done_steps,0), ...
+                                         mustBeLessThanOrEqual(percent_done_steps,0.1)} = 0; % update waitbar only when progress is greater than this value
+
+    end
+
     properties (SetAccess = private)
         
         bar_length;
@@ -31,11 +42,6 @@ classdef percent_bar < handle
         blink_character;
         blink_interval;
         keep_waitbar_open;
-        
-        
-        CMDLINE_ONLY;
-        SHOW_SELFTIME;
-        PROFILING_ON;
         
         datestr_format;
         self_time_warn_percent;
@@ -50,7 +56,7 @@ classdef percent_bar < handle
         
     end
     
-    properties %(Access = private)
+    properties (Access = private)
         
         bar_length_min = 4;
         bar_characters_not_allowed = ['%' , '\'];
@@ -71,8 +77,9 @@ classdef percent_bar < handle
         
         MODE = [];
         
+        percent_done_last = -1;
+
     end
-    
     
     methods
         
@@ -120,36 +127,42 @@ classdef percent_bar < handle
             this.WB = [];
             
         end
-        
-        function iteration_finished(this,percent_done)
-            
+
+        function STEP_DONE = iteration_finished(this,percent_done)
+
             t0 = tic;
-            
-            validateattributes(percent_done,{'double','single'},{'scalar','>=',0});
 
-            if percent_done > 1
-                warning('Percentage %.2f %% > 100 %%. Was the counter incremented too often?',100*percent_done);
-            end
-            
-            if isempty(this.time_start)
-                warning('percent_bar: Not proberly initialized. Time estimates may be wrong. Use init_loop.');
-                this.start();
-            end
-            
-            time_end_est = this.MODE(percent_done);
+            STEP_DONE = false;
+            if percent_done - this.percent_done_last > this.percent_done_steps
+                STEP_DONE = true;
 
-            if this.PROFILING_ON
-                this.profiling = [this.profiling , struct('percent_done',percent_done,'time_current',now,'time_end_est',time_end_est)];
+                if percent_done > 1
+                    warning('Percentage %.2f %% > 100 %%. Was the counter incremented too often?',100*percent_done);
+                end
+
+                if isempty(this.time_start)
+                    warning('percent_bar: Not proberly initialized. Time estimates may be wrong. Use init_loop.');
+                    this.start();
+                end
+
+                time_end_est = this.MODE(percent_done);
+
+                if this.PROFILING_ON
+                    this.profiling = [this.profiling , struct('percent_done',percent_done,'time_current',now,'time_end_est',time_end_est)];
+                end
+
+                this.percent_done_last = percent_done;
+
             end
-            
+
             this.t_self = this.t_self + toc(t0);
-            
+
             if percent_done == 1
                 this.finish();
             end
-            
+
         end
-        
+
         function [profiling , Fig] = view_profiling(this)
 %%
 % close all;
