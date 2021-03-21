@@ -36,12 +36,12 @@ classdef pspace
         function disp(obj)
             builtin('disp',obj);
             if numel(obj) == 1 && obj.Ncomb == 1
-                hnames = obj.names;
-                hnames = hnames.pad(max(hnames.strlength),'right',' ');
-                for ii = 1:obj.Nparam
-                    fprintf('\t%s = %s\n',hnames(ii),string(evalc('disp(obj.param_list(ii).values)')).strip);
-                end
                 fprintf('\n');
+                for ii = 1:obj.Nparam
+                    fprintf('\b%s =\n',obj.names(ii))
+                    disp(obj.param_list(ii).values{1});
+                end
+
             end
         end
 
@@ -69,7 +69,15 @@ classdef pspace
             end
             for ii = 1:ps.Nparam
                 [prm,idx_param] = obj.find_param(ps.names(ii));
-                sub{idx_param} = find(ismember(prm.values,ps.param_list(ii).values));
+                sub{idx_param} = nan(prm.N,1);
+                for jj = 1:ps.param_list(ii).N
+                    idx = find(cellfun(@(x) isequal(x,ps.param_list(ii).values{jj}),prm.values));
+                    if ~isempty(idx)
+                        sub{idx_param}(jj) = idx;
+                    end
+                end
+                sub{idx_param}(isnan(sub{idx_param})) = [];
+%                 sub{idx_param} = find(ismember(prm.values,ps.param_list(ii).values));
             end
         end
 
@@ -183,7 +191,7 @@ classdef pspace
             for ii = 1:numel(pspace_exp)
                 for jj = 1:pspace_exp(ii).Nparam
                     prm = pspace_exp(ii).param_list(jj);
-                    target(ii).(prm.name) = prm.values;
+                    target(ii).(prm.name) = prm.values{1};
                 end
             end
         end

@@ -22,7 +22,13 @@ classdef param
         end
 
         function obj = sort(obj)
-            obj.values = sort(obj.values);
+            try
+                tmp = cell2mat(obj.values);
+                [~,idx] = sort(tmp);
+                obj.values = obj.values(idx);
+            catch ME
+                warning("Could not sort parameter '%'. Leaving it as is.",obj.name);
+            end
         end
 
         function obj = shuffle(obj)
@@ -42,6 +48,13 @@ classdef param
             name = string(name);
             assert(~name.contains(obj.char_forbidden),'Parameter name must not contain any of these characters: %s',sprintf("'%s' ",obj.char_forbidden{:}).strip)
             obj.name = name;
+        end
+        
+        function obj = set.values(obj,values)
+            if ~iscell(values)
+                values = num2cell(values);
+            end
+            obj.values = values;
         end
         
     end
