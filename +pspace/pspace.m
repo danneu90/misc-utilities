@@ -12,6 +12,8 @@ classdef pspace
         Nvalues;
         Nparam;
         Ncomb;
+
+        param_struct;
     end
 
     methods
@@ -119,6 +121,13 @@ classdef pspace
             end
             assert(~ismember(param.name,obj.names),'Parameter ''%s'' already exists.',param.name);
             obj.param_list(end+1) = param;
+        end
+
+        function param_struct = get.param_struct(obj)
+            param_struct = struct();
+            for ii = 1:obj.Nparam
+                param_struct.(obj.param_list(ii).name) = obj.param_list(ii);
+            end
         end
 
         function Ncomb = get.Ncomb(obj)
