@@ -133,7 +133,7 @@ classdef percent_bar < handle
             t0 = tic;
 
             STEP_DONE = false;
-            if percent_done - this.percent_done_last > this.percent_done_steps
+            if percent_done >= 1 || percent_done - this.percent_done_last > this.percent_done_steps
                 STEP_DONE = true;
 
                 if percent_done > 1
