@@ -64,21 +64,35 @@ classdef pspace
         end
 
         function [sub] = find_values(obj,varargin)
+        %[sub] = obj.find_values(param0,values0,param1,values1,...)
+        %
+        % Finds subscripts of certain parameter values in parameter
+        % space.
+        % Same input as when constructing param space. If valuesx is
+        % empty, all existing parameters are returned. (Same as
+        % omitting paramx.)
             ps = pspace.pspace(varargin{:});
             sub = cell(obj.Nparam,1);
             for ii = 1:obj.Nparam
                 sub{ii} = (1:obj.Nvalues(ii)).';
             end
             for ii = 1:ps.Nparam
-                [prm,idx_param] = obj.find_param(ps.names(ii));
-                sub{idx_param} = nan(prm.N,1);
-                for jj = 1:ps.param_list(ii).N
-                    idx = find(cellfun(@(x) isequal(x,ps.param_list(ii).values{jj}),prm.values));
-                    if ~isempty(idx)
-                        sub{idx_param}(jj) = idx;
-                    end
+                try
+                    [prm,idx_param] = obj.find_param(ps.names(ii));
+                catch ME
+                    warning(ME.message);
+                    continue;
                 end
-                sub{idx_param}(isnan(sub{idx_param})) = [];
+                if ps.param_list(ii).N ~= 0 % leave all selected if parameter list empty
+                    sub{idx_param} = nan(prm.N,1);
+                    for jj = 1:ps.param_list(ii).N
+                        idx = find(cellfun(@(x) isequal(x,ps.param_list(ii).values{jj}),prm.values));
+                        if ~isempty(idx)
+                            sub{idx_param}(jj) = idx;
+                        end
+                    end
+                    sub{idx_param}(isnan(sub{idx_param})) = [];
+                end
 %                 sub{idx_param} = find(ismember(prm.values,ps.param_list(ii).values));
             end
         end
