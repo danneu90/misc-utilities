@@ -1,5 +1,5 @@
-function [Fig,cb,data] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims)
-%[Fig,cb,data] = misc.plots.spectrogram_quickplot(x,fs,tres,fres,[P_dBm_lims=[-inf,inf]])
+function [Fig,cb,data] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims,SET_OUT_OF_LIMIT_NAN)
+%[Fig,cb,data] = misc.plots.spectrogram_quickplot(x,fs,tres,fres,[P_dBm_lims=[-inf,inf]],[SET_OUT_OF_LIMIT_NAN=false])
 %
 % If instance of mysp.timefrequencybase is given instead of fs, parameters
 % fs, t0 and fc are used to place the spectrogram accordingly.
@@ -7,6 +7,13 @@ function [Fig,cb,data] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims)
 % Output 'data' contains the z axis (P_dBm) and timefrequencybases for x,y.
 %
 % See also mysp.timefrequencybase.
+
+    if nargin < 6
+        SET_OUT_OF_LIMIT_NAN = [];
+    end
+    if isempty(SET_OUT_OF_LIMIT_NAN)
+        SET_OUT_OF_LIMIT_NAN = false;
+    end
 
     if nargin < 5
         P_dBm_lims = [];
@@ -36,8 +43,13 @@ function [Fig,cb,data] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims)
                      max(P_dBm(~isinf(P_dBm)),[],'all','omitnan') ];
     P_dBm_lims(isinf(P_dBm_lims)) = P_dBm_minmax(isinf(P_dBm_lims));
 
-    P_dBm(P_dBm > max(P_dBm_lims)) = nan;
-    P_dBm(P_dBm < min(P_dBm_lims)) = nan;
+    if SET_OUT_OF_LIMIT_NAN
+        P_dBm(P_dBm > max(P_dBm_lims)) = nan;
+        P_dBm(P_dBm < min(P_dBm_lims)) = nan;
+    else
+        P_dBm(P_dBm > max(P_dBm_lims)) = max(P_dBm_lims);
+        P_dBm(P_dBm < min(P_dBm_lims)) = min(P_dBm_lims);
+    end
 
     Fig = gcf;
     surf(TTspec/1e-3,FFspec/1e6,P_dBm,'LineStyle','none');
