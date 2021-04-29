@@ -8,6 +8,8 @@ function [Fig,cb,data] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims,SET_OUT
 %
 % See also mysp.timefrequencybase.
 
+    VERBOSE = false;
+
     if nargin < 6
         SET_OUT_OF_LIMIT_NAN = [];
     end
@@ -18,7 +20,7 @@ function [Fig,cb,data] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims,SET_OUT
     if nargin < 5
         P_dBm_lims = [];
     end
-    P_dBm_lims = misc.parse_limits(P_dBm_lims,[-inf inf],'name','P_dBm_lims','verbose',true);
+    P_dBm_lims = misc.parse_limits(P_dBm_lims,[-inf inf],'name','P_dBm_lims','verbose',VERBOSE);
 
     if isa(fs,'mysp.timefrequencybase')
         tf = fs;
@@ -31,6 +33,19 @@ function [Fig,cb,data] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims,SET_OUT
     else
         fc = 0;
         t0 = 0;
+    end
+
+    if nargin < 4
+        fres = [];
+    end
+    if isempty(fres)
+        fres = fs / 512;
+    end
+    if nargin < 3
+        tres = [];
+    end
+    if isempty(tres)
+        tres = size(x,1)/fs / 512;
     end
 
     [P_dBmperHz,TTspec,FFspec] = mysp.get_spectrogram(x,fs,tres,fres);
@@ -51,11 +66,14 @@ function [Fig,cb,data] = spectrogram_quickplot(x,fs,tres,fres,P_dBm_lims,SET_OUT
         P_dBm(P_dBm < min(P_dBm_lims)) = min(P_dBm_lims);
     end
 
+    [~,~,t_range,t_unit] = misc.unit_parser(max(abs(TTspec),[],'all'),'s');
+    [~,~,f_range,f_unit] = misc.unit_parser(max(abs(FFspec),[],'all'),'Hz');
+
     Fig = gcf;
-    surf(TTspec/1e-3,FFspec/1e6,P_dBm,'LineStyle','none');
+    surf(TTspec/t_range,FFspec/f_range,P_dBm,'LineStyle','none');
     view(2);
-    xlabel('t (ms)');
-    ylabel('f (MHz)');
+    xlabel(sprintf('t (%s)',t_unit));
+    ylabel(sprintf('f (%s)',f_unit));
 %     cb = colorbar;
 %     cb.Label.String = 'P (dBm)';
     zlim(P_dBm_lims);

@@ -1,5 +1,5 @@
-function [out_strings,isvalue] = unit_parser(values,varargin)
-%[final_strings,isvalue] = misc.unit_parser(values,varargin)
+function [out_strings,isvalue,ranges,unit_full] = unit_parser(values,varargin)
+%[final_strings,isvalue,ranges,unit_full] = misc.unit_parser(values,varargin)
 %
 % input:
 %   values  ... Required. Can be array.
@@ -10,6 +10,8 @@ function [out_strings,isvalue] = unit_parser(values,varargin)
 % output:
 %   out_strings ... String array formatted in the way specified.
 %   isvalue     ... Logic struct showing whether special units where found.
+%   ranges      ... Ranges, i.e. devider ratios to fit number to unit_full.
+%   unit_full   ... Strings with full unit expression.
 
     p = inputParser;
 
@@ -100,9 +102,10 @@ function [out_strings,isvalue] = unit_parser(values,varargin)
     value_strings(idxinfpos) = "Inf";
     value_strings(idxinfneg) = "-Inf";
 
+    unit_full = prefixes.append(unit);
+
     out_strings = value_strings.append(' ');
-    out_strings = out_strings.append(prefixes);
-    out_strings = out_strings.append(unit);
+    out_strings = out_strings.append(unit_full);
     out_strings = out_strings.strip();
 
 end
