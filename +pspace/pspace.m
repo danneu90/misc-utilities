@@ -13,7 +13,7 @@ classdef pspace
         Nparam;
         Ncomb;
 
-        param_struct;
+        struct;
     end
 
     methods
@@ -137,10 +137,10 @@ classdef pspace
             obj.param_list(end+1) = param;
         end
 
-        function param_struct = get.param_struct(obj)
-            param_struct = struct();
+        function strct = get.struct(obj)
+            strct = struct();
             for ii = 1:obj.Nparam
-                param_struct.(obj.param_list(ii).name) = obj.param_list(ii);
+                strct.(obj.param_list(ii).name) = obj.param_list(ii);
             end
         end
 
@@ -214,7 +214,7 @@ classdef pspace
             for ii = 1:numel(pspace_exp)
                 for jj = 1:pspace_exp(ii).Nparam
                     prm = pspace_exp(ii).param_list(jj);
-                    target(ii).(prm.name) = prm.values{1};
+                    target(ii).(prm.name) = prm.values(1);
                 end
             end
         end

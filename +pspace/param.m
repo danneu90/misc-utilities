@@ -56,6 +56,23 @@ classdef param
             end
             obj.values = values;
         end
+
+        function values = get.values(obj)
+            values = obj.values;
+            if numel(values) == 1 % if only one element -> no problem, just return content
+                values = values{1};
+            else % try to return matrix instead of cell array
+                try
+                    values = cell2mat(obj.values);
+                catch ME
+                    % if it does not work -> warning only if not the
+                    % expected error
+                    if ~ismember(ME.identifier,{'MATLAB:cell2mat:MixedDataTypes'})
+                        warning(ME.identifier,'Could not convert values to array: "%s"',ME.message);
+                    end
+                end
+            end
+        end
         
     end
 
