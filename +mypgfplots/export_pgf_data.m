@@ -27,7 +27,8 @@ function fn = export_pgf_data(fn,sep,varargin)
     if isempty(sep)
         sep = ',\t';
     end
-    assert(~exist(fn,'file'),'File ''%s'' exists. Abort.',fn);
+    strtmp = sprintf("File '%s' exists.",fn);
+    assert(~exist(fn,'file') || misc.confirm_input(strtmp.append(' Overwrite?')),strtmp.append(' Abort.'));
     assert(~isempty(varargin),'No data to write.');
     assert(~mod(numel(varargin),2),'Data must come in pairs: ''titlestring'', datacolumnvector, ...');
 
