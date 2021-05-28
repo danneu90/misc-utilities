@@ -47,22 +47,25 @@ classdef timefrequencybase
 
         function obj = timefrequencybase(N,varargin)
 
-            p = inputParser;
-            p.addRequired('N',@(x) assert(x == round(x) && x > 0 && isscalar(N),'N must be nonegative scalar integer.'));
-            p.addOptional('fs',1,@(x) validateattributes(x,{'numeric'},{'scalar','real','positive'}));
-            p.addParameter('t0',0,@(x) validateattributes(x,{'numeric'},{'scalar','real'}));
-            p.addParameter('fc',0,@(x) validateattributes(x,{'numeric'},{'scalar','real','nonnegative'}));
-            p.addParameter('TIME_CENTERED', false, @(x) validateattributes(logical(x),{'logical'},{'scalar'}));
-            p.addParameter('FREQ_CENTERED', true,  @(x) validateattributes(logical(x),{'logical'},{'scalar'}));
+            [N,fs,param] = obj.parse_input(N,varargin{:});
 
-            p.parse(N,varargin{:});
-
-            obj.fs = p.Results.fs;
-            obj.N = p.Results.N;
-            obj.t0 = p.Results.t0;
-            obj.fc = p.Results.fc;
-            obj.TIME_CENTERED = logical(p.Results.TIME_CENTERED);
-            obj.FREQ_CENTERED = logical(p.Results.FREQ_CENTERED);
+            if numel(N) == 1
+                obj.fs = fs;
+                obj.N = N;
+                obj.t0 = param.t0;
+                obj.fc = param.fc;
+                obj.TIME_CENTERED = param.TIME_CENTERED;
+                obj.FREQ_CENTERED = param.FREQ_CENTERED;
+            else
+                obj = repmat(mysp.timefrequencybase(1),size(N));
+                for ii = 1:numel(N)
+                    obj(ii) = mysp.timefrequencybase(N(ii),fs(ii), ...
+                        't0' , param.t0(ii) , ...
+                        'fc' , param.fc(ii) , ...
+                        'TIME_CENTERED' , param.TIME_CENTERED(ii) , ...
+                        'FREQ_CENTERED' , param.FREQ_CENTERED(ii) );
+                end
+            end
 
         end
 
@@ -118,6 +121,64 @@ classdef timefrequencybase
 
         function t_stop = get.t_stop(obj)
             t_stop = obj.t_start + obj.T - obj.dt;
+        end
+
+    end
+
+    methods (Access = private, Static = true)
+
+        function [N,fs,param] = parse_input(N,varargin)
+
+            p = inputParser;
+            p.addRequired('N',@(x) assert(all(x == round(x) & x > 0),'N must be nonegative integer.'));
+            p.addOptional('fs',1,@(x) validateattributes(x,{'numeric'},{'real','positive'}));
+            p.addParameter('t0',0,@(x) validateattributes(x,{'numeric'},{'real'}));
+            p.addParameter('fc',0,@(x) validateattributes(x,{'numeric'},{'real','nonnegative'}));
+            p.addParameter('TIME_CENTERED', false, @(x) validateattributes(logical(x),{'logical'},{}));
+            p.addParameter('FREQ_CENTERED', true,  @(x) validateattributes(logical(x),{'logical'},{}));
+
+            p.parse(N,varargin{:});
+            N = p.Results.N;
+            fs = p.Results.fs;
+            t0 = p.Results.t0;
+            fc = p.Results.fc;
+            TIME_CENTERED = logical(p.Results.TIME_CENTERED);
+            FREQ_CENTERED = logical(p.Results.FREQ_CENTERED);
+
+            if numel(N) == 1 && numel(fs) > 1
+                N = repmat(N,size(fs));
+            elseif numel(N) > 1 && numel(fs) == 1
+                fs = repmat(fs,size(N));
+            else
+                assert(isequal(size(N),size(fs)),'N and fs not of equal size.');
+            end
+
+            if numel(t0) > 1
+                assert(isequal(size(N),size(t0)),'t0 must be either scalar or of same size as N/fs.');
+            else
+                t0 = repmat(t0,size(N));
+            end
+            if numel(fc) > 1
+                assert(isequal(size(N),size(fc)),'fc must be either scalar or of same size as N/fs.');
+            else
+                fc = repmat(fc,size(N));
+            end
+            if numel(TIME_CENTERED) > 1
+                assert(isequal(size(N),size(TIME_CENTERED)),'TIME_CENTERED must be either scalar or of same size as N/fs.');
+            else
+                TIME_CENTERED = repmat(TIME_CENTERED,size(N));
+            end
+            if numel(FREQ_CENTERED) > 1
+                assert(isequal(size(N),size(FREQ_CENTERED)),'t0 must be either scalar or of same size as N/fs.');
+            else
+                FREQ_CENTERED = repmat(FREQ_CENTERED,size(N));
+            end
+
+            param.t0 = t0;
+            param.fc = fc;
+            param.TIME_CENTERED = TIME_CENTERED;
+            param.FREQ_CENTERED = FREQ_CENTERED;
+
         end
 
     end
