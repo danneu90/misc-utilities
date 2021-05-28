@@ -6,6 +6,7 @@ classdef pspace
 
     properties (Dependent = true)
         names (:,1) string;
+        struct;
     end
 
     properties (Dependent = true, SetAccess = private)
@@ -13,7 +14,6 @@ classdef pspace
         Nparam;
         Ncomb;
 
-        struct;
     end
 
     methods
@@ -107,6 +107,9 @@ classdef pspace
                 for ii = 1:prm.N
                     pspace_tmp = obj;
                     pspace_tmp.param_list(idx_prm).values = prm.values(ii);
+                    if ~isempty(prm.secondary)
+                        pspace_tmp.param_list(idx_prm).secondary = arrayfun(@(x) x.extract(ii),prm.secondary);
+                    end
                     pspace_exp = cat(idx_prm,pspace_exp,pspace_tmp.expand());
                 end
             end
@@ -135,6 +138,19 @@ classdef pspace
             end
             assert(~ismember(param.name,obj.names),'Parameter ''%s'' already exists.',param.name);
             obj.param_list(end+1) = param;
+        end
+
+        function obj = set.struct(obj,strct)
+            flds = string(fields(strct));
+            assert(numel(flds) == obj.Nparam,'Struct must contain same number of parameters as pspace object.');
+            for ii = 1:obj.Nparam
+                name = obj.param_list(ii).name;
+                idx = ismember(flds,name);
+                assert(any(idx),'Struct must contain all parameters. ''%s'' not found.',name);
+                prm = strct.(name);
+                assert(isa(prm,'pspace.param'),'Struct fields must be pspace.param.');
+                obj.param_list(ii) = prm;
+            end
         end
 
         function strct = get.struct(obj)
@@ -215,6 +231,13 @@ classdef pspace
                 for jj = 1:pspace_exp(ii).Nparam
                     prm = pspace_exp(ii).param_list(jj);
                     target(ii).(prm.name) = prm.values(1);
+                    N_sec = numel(pspace_exp(ii).param_list(jj).secondary);
+                    if N_sec > 0
+                        for kk = 1:N_sec
+                            prmsec = pspace_exp(ii).param_list(jj).secondary(kk);
+                            target(ii).(prmsec.name) = prmsec.values(1);
+                        end
+                    end
                 end
             end
         end
@@ -227,5 +250,5 @@ classdef pspace
         end
 
     end
-    
+
 end
