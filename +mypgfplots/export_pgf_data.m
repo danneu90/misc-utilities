@@ -28,37 +28,73 @@ function fn = export_pgf_data(fn,sep,varargin)
         sep = ',\t';
     end
     strtmp = sprintf("File '%s' exists.",fn);
-    assert(~exist(fn,'file') || misc.confirm_input(strtmp.append(' Overwrite?')),strtmp.append(' Abort.'));
+    if exist(fn,'file')
+        warning(strtmp.append(' Overwriting.'));
+    end
+%     assert(~exist(fn,'file') || misc.confirm_input(strtmp.append(' Overwrite?')),strtmp.append(' Abort.'));
     assert(~isempty(varargin),'No data to write.');
     assert(~mod(numel(varargin),2),'Data must come in pairs: ''titlestring'', datacolumnvector, ...');
 
+    for idx = 2:2:numel(varargin)
+        data_tmp = varargin{idx};
+        assert(numel(size(data_tmp)) == 2,'Max. two dimensional data allowed.');
+        if isrow(data_tmp) && ~isa(data_tmp,'char')
+            varargin{idx} = data_tmp.';
+        end
+    end
 %%%
+    N_data = size(varargin{2},1);
+    varargin_new = {};
+    for idx = 1:2:numel(varargin)
 
+        labels_tmp = string(varargin{idx});
+        assert(iscolumn(labels_tmp) || isrow(labels_tmp),'Labels must be one dimensional.');
+        labels_tmp = labels_tmp(:).';
+        N_labels = numel(labels_tmp);
+
+
+        data_tmp = varargin{idx+1};
+        assert(N_data == size(data_tmp,1),'All data must have the same number of rows.');
+        if isa(data_tmp,'char') && N_labels == 1
+            data_tmp = string(data_tmp).strip();
+        end
+        assert(N_labels == size(data_tmp,2),'Number of labels does not fit 2nd dimension of data.');
+
+
+        varargin_tmp = [ cellstr(labels_tmp) ; ...
+                         mat2cell(data_tmp,N_data,ones(1,N_labels)) ];
+
+        varargin_new = [varargin_new , varargin_tmp(:).'];
+
+    end
+    varargin = varargin_new;
+
+    % convert data to strings
     for idx = 2:2:numel(varargin)
         switch class(varargin{idx})
             case 'cell'
                 % do nothing
             case 'char'
                 varargin{idx} = cellstr(varargin{idx});
+            case 'string'
+                varargin{idx} = cellstr(varargin{idx});
 %             case 'int32' ...
             otherwise
                 varargin{idx} = cellstr(num2str(varargin{idx}));
         end
     end
-    
-    assert(all(cellfun(@(x) isequal(size(varargin{2}),size(x)),varargin(2:2:end))),'All datacolumnvectors must have the same number of elements.');
-    assert(iscolumn(varargin{2}),'All datacolumnvectors must be column vectors. Nona.');
-    
-    N_data = numel(varargin{2});
+
     N_fields = numel(varargin)/2;
     N_char_sep = numel(regexprep(sep,'\\.','X'));
 
-    
+
     titles = varargin(1:2:end);
     data = [varargin{2:2:end}];
 
     fid = fopen(fn,'w');
-    
+
+    assert(fid ~= -1,'Could not open file "%s".',fn);
+
     towrite = sprintf(['%s' sep],titles{:});
     fprintf(fid,'%s\n\n',towrite(1:end-N_char_sep));
 
@@ -66,7 +102,7 @@ function fn = export_pgf_data(fn,sep,varargin)
         towrite = sprintf(['%s',sep],data{ii,:});
         fprintf(fid,'%s\n',towrite(1:end-N_char_sep));
     end
-            
+
     fclose(fid);
 
 end
