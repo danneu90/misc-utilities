@@ -10,6 +10,6 @@ function ls = parse_linestyle(ls)
         case "-."
             ls = "dashdotted";
         otherwise
-            erros('Line Style "%s" can not be used.',ls)
+            warning('Non matlab line style "%s".',ls)
     end
 end
