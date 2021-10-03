@@ -46,5 +46,7 @@ function str_tex_size = parse_tex_fontsize(fontsize)
         str_tex_size = string(fontsize).strip('left','\');
         assert(ismember(str_tex_size,fontsize_list),'Label font size must be one of: "%s" (is %s).',fontsize_list.join(', '),fontsize);
     end
-    str_tex_size = string("\").append(str_tex_size);
+    if ~isempty(str_tex_size)
+        str_tex_size = string("\").append(str_tex_size);
+    end
 end
