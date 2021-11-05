@@ -86,11 +86,16 @@ cb = [];
         data.tf.time = mysp.timefrequencybase(size(TTspec,2),1/diff(TTspec(1,1:2)));
         data.tf.time.fc = fc;
         data.tf.time.t0 = t0;
+        data.t_range = t_range;
+        data.t_unit = t_unit;
 
         N_ff = size(FFspec,1);
         data.tf.freq = mysp.timefrequencybase(N_ff,N_ff*diff(FFspec(1:2,1)));
         data.tf.freq.fc = fc;
         data.tf.freq.t0 = t0;
+        data.f_range = f_range;
+        data.f_unit = f_unit;
+
     end
 
 end
