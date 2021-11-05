@@ -32,6 +32,8 @@ classdef timefrequencybase
 
         t_start; % first time sample
         t_stop;  % last time sample
+        f_start; % first freq sample
+        f_stop;  % last freq sample
     end
 
     properties
@@ -130,6 +132,17 @@ classdef timefrequencybase
 
         function t_stop = get.t_stop(obj)
             t_stop = obj.t_start + obj.T - obj.dt;
+        end
+
+        function f_start = get.f_start(obj)
+            f_start = obj.fc;
+            if obj.FREQ_CENTERED
+                f_start = f_start - obj.df * (obj.N - mod(obj.N,2))/2;
+            end
+        end
+
+        function f_stop = get.f_stop(obj)
+            f_stop = obj.f_start + obj.fs - obj.df;
         end
 
     end
