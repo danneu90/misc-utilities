@@ -26,7 +26,7 @@ function [f0_est,SNR_est,A_est,df] = est_single_sinusoids(x,fs,df)
 %         N_zp = 2^ceil(log2(fs/df));
         N_zp = ceil(fs/df);
         x_zp = [x ; zeros(N_zp - N_x,size(x,2))];
-        N_zp = numel(x_zp);
+        N_zp = size(x_zp,1);
     end
     df = fs/N_zp;
 
