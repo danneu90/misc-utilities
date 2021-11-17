@@ -351,8 +351,8 @@ classdef percent_bar < handle
                 msg = [msg , time_end_est_string , '\n'];
 
                 % Delete and print
-                fprintf(repmat('\b',1,this.N_msg_characters-this.count_forbidden_characters(this.msg_old)+1));
-                fprintf(msg);
+                fprintf(repmat('\b',1,this.N_msg_characters-this.count_forbidden_characters(this.msg_old)+2));
+                fprintf(['\n' , msg]);
                 this.N_msg_characters = numel(msg);
                 this.msg_old = msg;
 
