@@ -21,27 +21,46 @@ function str_tex = ellipse(A,xc,varargin)
     y_c = xc(2);
 
     p = inputParser;
-    p.addOptional('Color','k');
-    p.addOptional('LineWidth',1);
-    p.addOptional('LineStyle','-');
+    p.addOptional('style_tikz','');
+    p.KeepUnmatched = true;
+    p.parse(varargin{:});
+
+    def.Color = 'k';
+    def.LineWidth = 1;
+    def.LineStyle = '-';
+    if ~isempty(p.Results.style_tikz)
+        def.Color = '';
+        def.LineWidth = [];
+        def.LineStyle = '';
+    end
+    p.addOptional('Color',def.Color);
+    p.addOptional('LineWidth',def.LineWidth);
+    p.addOptional('LineStyle',def.LineStyle);
     p.addOptional('legend_entry','');
 
     p.KeepUnmatched = true;
     p.parse(varargin{:});
 
-    [~,str_rgb255] = mypgfplots.libplottikz.color2rgb255(p.Results.Color);
-    lw = p.Results.LineWidth/4;
-    ls = mypgfplots.libplottikz.parse_linestyle(p.Results.LineStyle);
+    str_opt = strings(0);
+    if ~isempty(p.Results.style_tikz)
+        str_opt(end+1) = string(p.Results.style_tikz);
+    end
+    if ~isempty(p.Results.Color)
+        [~,str_rgb255] = mypgfplots.libplottikz.color2rgb255(p.Results.Color);
+        str_opt(end+1) = string("color=").append(str_rgb255);
+    end
+    if ~isempty(p.Results.LineStyle)
+        ls = mypgfplots.libplottikz.parse_linestyle(p.Results.LineStyle);
+        str_opt(end+1) = ls;
+    end
+    if ~isempty(p.Results.LineWidth)
+        lw = p.Results.LineWidth/4;
+        str_opt(end+1) = string("line width=").append(string(lw));
+    end
 
     leg = string(p.Results.legend_entry);
     ISLEGEND = ~(isempty(leg) || all(leg.strlength == 0));
 
-% start
-
-    str_opt = [ string("color=").append(str_rgb255) , ... color
-                ls , ... line style
-                string("line width=").append(string(lw)) , ... line width
-                ];
     str_opt_ell = [str_opt , sprintf("rotate around={%f:(axis cs: %f,%f)}" , ...
                     rot_deg , x_c , y_c ) ];
 
