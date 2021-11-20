@@ -1,4 +1,4 @@
-function [x,y,z] = make_rectangles(Xin,Yin,Zin,DISCARD_NAN)
+function [x,y,z,str_tex_coord] = make_rectangles(Xin,Yin,Zin,DISCARD_NAN)
 %[x,y,z] = mypgfplots.make_rectangles(Xin,Yin,Zin,DISCARD_NAN)
 
 %%
@@ -57,6 +57,17 @@ VERBOSE = false;
         end
     end
 
+    if nargout > 3
+        str_tex_coord = strings(size(Xin));
+        for ii = 1:numel(str_tex_coord)
+            str_tex_tmp = string([Xin(ii),Yin(ii),Zin(ii)]);
+            str_tex_tmp(ismissing(str_tex_tmp)) = "0";
+            str_tex_coord(ii) = "(" + str_tex_tmp.join(',') + ")";
+        end
+        str_tex_coord = str_tex_coord.';
+        str_tex_coord = str_tex_coord.join(' ');
+        str_tex_coord = str_tex_coord.join([newline newline]);
+    end
 
 
 end
