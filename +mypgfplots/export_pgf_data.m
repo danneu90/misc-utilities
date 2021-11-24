@@ -27,7 +27,7 @@ function fn_out = export_pgf_data(fn_out,varargin)
         label = varargin{ii};
         data = varargin{ii+1};
 
-        assert(iscellstr(label) || (ischar(label) && isrow(label)),'Odd numbered varargins must be data label (possibly array) or option label (leading ''-'').');
+        assert(isstring(label) || iscellstr(label) || (ischar(label) && isrow(label)),'Odd numbered varargins must be data label (possibly array) or option label (leading ''-'').');
 
         label = string(label);
 
@@ -63,9 +63,9 @@ function fn_out = export_pgf_data(fn_out,varargin)
             end
         end
     end
-    assert(~(IS_MULTI_LABEL && IS_ARRAY_INPUT),'Only either multi-label or array-input mode allowed.');
+    assert(all(N_data_cols == N_data_cols(1)),'Array-input requires equally sized arrays as input. Maybe some data is row instead of column?');
     assert(all(N_data == N_data(1)),'All data input must have the same number of rows.');
-    assert(all(N_data_cols == N_data_cols(1)),'Array-input requires equally sized arrays as input.');
+    assert(~(IS_MULTI_LABEL && IS_ARRAY_INPUT),'Only either multi-label or array-input mode allowed.');
     N_data = N_data(1);
     N_data_cols = N_data_cols(1);
 
