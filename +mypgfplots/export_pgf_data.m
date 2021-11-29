@@ -11,7 +11,9 @@ function fn_out = export_pgf_data(fn_out,varargin)
 %   -newline    ... newline character, default \n
 %   -array_sep  ... if data input is in array format, columns of arrays
 %                   will be put below each other in table, separated by
-%                   this character,default \n
+%                   this character, default \n
+%   -mkdir      ... if true, creates folder structure for output file
+%                   location if not existing, default false
 
     assert(~mod(numel(varargin),2),'varargin must come in pairs. Did you mean to use old version? Now found as mypgfplots.export_pgf_table');
 
@@ -78,6 +80,7 @@ function fn_out = export_pgf_data(fn_out,varargin)
     p.addParameter('nan_string','NaN',@(x) mustBeTextScalar(x));
 
     p.addParameter('omit_label',false,@(x) validateattributes(x,{'logical'},{'scalar'}));
+    p.addParameter('mkdir',false,@(x) validateattributes(x,{'logical'},{'scalar'}));
     p.addParameter('sep','\t',@(x) mustBeTextScalar(x));
     p.addParameter('newline',newline,@(x) mustBeTextScalar(x));
     p.addParameter('array_sep',newline,@(x) mustBeTextScalar(x));
@@ -124,6 +127,8 @@ end
 
 function write_table(fn_out,opt,labels,data)
 
+    check_folder(fn_out,opt);
+
     fid = fopen(fn_out,'w');
 
     if ~opt.omit_label
@@ -139,4 +144,13 @@ function write_table(fn_out,opt,labels,data)
 
     fclose(fid);
 
+end
+
+function check_folder(fn_out,opt)
+    fldr = fileparts(fn_out);
+    if ~exist(fldr,'dir')
+        assert(opt.mkdir,'Output folder "%s" does not exist. Set -mkdir flag true for automatic folder creation.',fldr);
+        warning('Output folder "%s" does not exist. Creating it ...',fldr);
+        mkdir(fldr);
+    end
 end
