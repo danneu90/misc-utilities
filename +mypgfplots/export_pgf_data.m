@@ -13,7 +13,9 @@ function fn_out = export_pgf_data(fn_out,varargin)
 %                   will be put below each other in table, separated by
 %                   this character, default \n
 %   -mkdir      ... if true, creates folder structure for output file
-%                   location if not existing, default false
+%                   location if not existing, default true
+%   -omitemptyrow . if all entries of a row are empty, don't print this row
+%                   at all, default false
 
     assert(~mod(numel(varargin),2),'varargin must come in pairs. Did you mean to use old version? Now found as mypgfplots.export_pgf_table');
 
@@ -80,10 +82,11 @@ function fn_out = export_pgf_data(fn_out,varargin)
     p.addParameter('nan_string','NaN',@(x) mustBeTextScalar(x));
 
     p.addParameter('omit_label',false,@(x) validateattributes(x,{'logical'},{'scalar'}));
-    p.addParameter('mkdir',false,@(x) validateattributes(x,{'logical'},{'scalar'}));
+    p.addParameter('mkdir',true,@(x) validateattributes(x,{'logical'},{'scalar'}));
     p.addParameter('sep','\t',@(x) mustBeTextScalar(x));
     p.addParameter('newline',newline,@(x) mustBeTextScalar(x));
     p.addParameter('array_sep',newline,@(x) mustBeTextScalar(x));
+    p.addParameter('omitemptyrow',false,@(x) validateattributes(x,{'logical'},{'scalar'}));
 
     p.parse(varargin_opt{:});
 
@@ -98,14 +101,18 @@ function fn_out = export_pgf_data(fn_out,varargin)
     for ii = 1:numel(data_all)
         data = data_all{ii};
 
-%         is_nan = isnan(data);
+        if isnumeric(data)
+            is_nan = isnan(data);
+        else
+            is_nan = false(size(data));
+        end
         switch class(data) % different parsing options for different input data classes
             case 'string'
                 data_str = data;
             otherwise
                 data_str = string(arrayfun(@(x) num2str(x),data,'UniformOutput',false));
         end
-%         data_str(is_nan) = p.Results.nan_string;
+        data_str(is_nan) = p.Results.nan_string;
         N_pad = max(max(data_str.strlength,[],'all'),data_labels(ii).strlength);
         data_labels(ii) = data_labels(ii).pad(N_pad,'left');
         data_str = data_str.pad(N_pad,'left');
@@ -137,7 +144,9 @@ function write_table(fn_out,opt,labels,data)
 
     for ii = 1:size(data,2)
         for jj = 1:size(data,1)
-            fprintf(fid,data(jj,ii,:).join(opt.sep) + opt.newline);
+            if ~opt.omitemptyrow || any(data(jj,ii,:).strip.strlength)
+                fprintf(fid,data(jj,ii,:).join(opt.sep) + opt.newline);
+            end
         end
         fprintf(fid,opt.array_sep);
     end
