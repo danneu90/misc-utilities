@@ -1,4 +1,4 @@
-function str_tex = node_simple(x,y,varargin)
+function str_tex = coordinate(x,y,varargin)
 
     assert(isequal(size(x),size(y)),'x and y must be of same size.');
 
@@ -6,7 +6,6 @@ function str_tex = node_simple(x,y,varargin)
     p.addOptional('axis_flag',false);
     p.addOptional('style_tikz',"");
     p.addOptional('label',"");
-    p.addOptional('text',"");
 
     p.KeepUnmatched = true;
     p.parse(varargin{:});
@@ -37,36 +36,22 @@ function str_tex = node_simple(x,y,varargin)
     end
     assert(isequal(size(label),size(x)),'label must be string scalar or given for each x,y');
 
-    text_node = p.Results.text;
-    if (ischar(text_node) && isrow(text_node)) || iscellstr(text_node)
-        text_node = string(text_node);
-    end
-    assert(isstring(text_node),'text must be string or cellstr');
-    if numel(text_node) == 1
-        text_node = repmat(text_node,size(x));
-    end
-    assert(isequal(size(text_node),size(x)),'text must be string scalar or given for each x,y');
-
     str_tex = "";
     for ii = 1:numel(x)
-        str = "\draw";
+        str = "\coordinate";
+        if style_tikz(ii).strlength
+            str = str + " [" + style_tikz(ii) + "]";
+        end
+        if label(ii).strlength
+            str = str + " (" + label(ii) + ")";
+        end
+        str = str + " at";
         str = str + " (";
         if ~isempty(is_axis(ii))
             str = str + "axis cs: ";
         end
         str = str + sprintf("%f,%f",x(ii),y(ii)) + ")";
-        str = str + " node";
-        if label(ii).strlength
-            str = str + " (" + label(ii) + ")";
-        end
-        if style_tikz(ii).strlength
-            str = str + " [" + style_tikz(ii) + "]";
-        end
-        str = str + " {";
-        if text_node(ii).strlength
-            str = str + text_node(ii);
-        end
-        str = str + "};" + newline;
+        str = str + ";" + newline;
         str_tex = str_tex + str;
     end
 
