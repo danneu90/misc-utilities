@@ -32,8 +32,10 @@ classdef timefrequencybase
 
         t_start; % first time sample
         t_stop;  % last time sample
+        tlim;    % limits of time axis
         f_start; % first freq sample
         f_stop;  % last freq sample
+        flim;    % limits of freq axis
     end
 
     properties
@@ -69,6 +71,13 @@ classdef timefrequencybase
                 end
             end
 
+        end
+
+        function obj = upsample(obj,N_us)
+            assert(N_us > 1,'N_us must be greater than 1');
+            assert(N_us == round(N_us),'N_us must be integer');
+            obj.N = obj.N * N_us;
+            obj.fs = obj.fs * N_us;
         end
 
         function eq = eq(obj,obj0)
@@ -134,6 +143,10 @@ classdef timefrequencybase
             t_stop = obj.t_start + obj.T - obj.dt;
         end
 
+        function tlim = get.tlim(obj)
+            tlim = obj.t_start + [0 obj.T - obj.dt];
+        end
+
         function f_start = get.f_start(obj)
             f_start = obj.fc;
             if obj.FREQ_CENTERED
@@ -143,6 +156,10 @@ classdef timefrequencybase
 
         function f_stop = get.f_stop(obj)
             f_stop = obj.f_start + obj.fs - obj.df;
+        end
+
+        function flim = get.flim(obj)
+            flim = obj.f_start + [0 obj.fs - obj.df];
         end
 
     end
