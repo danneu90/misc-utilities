@@ -1,20 +1,26 @@
-function [out_strings,isvalue] = unit_parser(values,varargin)
-%[final_strings,isvalue] = misc.unit_parser(values,varargin)
+function [out_strings,isvalue,ranges,unit_full] = unit_parser(values,varargin)
+%[final_strings,isvalue,ranges,unit_full] = misc.unit_parser(values,varargin)
 %
 % input:
 %   values  ... Required. Can be array.
 % varargin:
+%   1st element is used as unit directly if 'unit' not specified as start.
 %   precision   ... Default 3. Format this precission.
-%   unit        ... Default ''. Special units: dB, Byte.
+%   unit        ... Default '' (no prefixes). Special units: dB, Byte.
 % output:
 %   out_strings ... String array formatted in the way specified.
 %   isvalue     ... Logic struct showing whether special units where found.
+%   ranges      ... Ranges, i.e. devider ratios to fit number to unit_full.
+%   unit_full   ... Strings with full unit expression.
 
     p = inputParser;
 
     p.addParameter('unit','',@(x) validateattributes(x,{'char','string'},{'scalartext'}));
     p.addParameter('precision',3,@(x) validateattributes(x,{'numeric'},{'scalar','integer','>',0}));
 
+    if mod(numel(varargin),2) && ~strcmpi(varargin{1},'unit')
+        varargin = [{'unit'},varargin];
+    end
     p.parse(varargin{:});
 
     unit = char(p.Results.unit);
@@ -57,6 +63,8 @@ function [out_strings,isvalue] = unit_parser(values,varargin)
 
     if isvalue.byte
         idx = arrayfun(@(x) find(range_exps == x,1), floor(log2(Hvalues)/10));
+    elseif isempty(unit)
+        idx = repmat(9,size(Hvalues));
     else
         idx = arrayfun(@(x) find(range_exps == x,1), floor(log10(Hvalues)/3));
     end
@@ -65,6 +73,10 @@ function [out_strings,isvalue] = unit_parser(values,varargin)
     prefixes = prefix(idx);
     ranges(values == 0) = 1;
     prefixes(values == 0) = "";
+    if iscolumn(idx) % matlab does not use index shape in this case
+        prefixes = prefixes(:);
+        ranges = ranges(:);
+    end
 
     precomma = floor(log10(abs(values)./ranges) + 1);
     precomma(values == 0) = 0;
@@ -90,9 +102,11 @@ function [out_strings,isvalue] = unit_parser(values,varargin)
     value_strings(idxinfpos) = "Inf";
     value_strings(idxinfneg) = "-Inf";
 
+    unit_full = prefixes.append(unit);
+
     out_strings = value_strings.append(' ');
-    out_strings = out_strings.append(prefixes);
-    out_strings = out_strings.append(unit);
+    out_strings = out_strings.append(unit_full);
+    out_strings = out_strings.strip();
 
 end
 

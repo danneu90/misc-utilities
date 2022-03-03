@@ -14,7 +14,9 @@ function status = confirm_input(question,default_response)
     end
     
     while 1
-        resp = input(sprintf('%s Y/N [%s]: ',question,resp_def),'s');
+        strtmp = string(question).append(sprintf(' Y/N [%s]: ',resp_def));
+        strtmp = strrep(strtmp,'\','\\');
+        resp = input(strtmp,'s');
 
         if isempty(resp)
             resp = resp_def;

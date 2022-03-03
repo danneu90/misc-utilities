@@ -27,7 +27,12 @@ classdef signal < mysp.timefrequencybase
     end
 
     properties (Dependent)
-        X {mustBeNumeric(X),mustBeNonempty(X)} = 0; % Signal in frequency domain.
+        X {mustBeNumeric(X),mustBeNonempty(X)}; % Signal in frequency domain.
+    end
+
+    properties (Dependent, SetAccess=private)
+        dxdt_td {mustBeNumeric(dxdt_td),mustBeNonempty(dxdt_td)};
+        dxdt_fd {mustBeNumeric(dxdt_fd),mustBeNonempty(dxdt_fd)};
     end
 
     methods
@@ -111,11 +116,30 @@ classdef signal < mysp.timefrequencybase
         end
 
         function X = get.X(obj)
-            HX = fft(obj.x,[],1)/sqrt(obj.N);
+            if obj.TIME_CENTERED
+                HX = fft(ifftshift(obj.x,1),[],1)/sqrt(obj.N);
+            else
+                HX = fft(obj.x,[],1)/sqrt(obj.N);
+            end
             if obj.FREQ_CENTERED
                 X = fftshift(HX,1);
             else
                 X = HX;
+            end
+        end
+
+        function dxdt_fd = get.dxdt_fd(obj)
+            dxdt_fd = 1i*2*pi*obj.ff .* obj.X;
+        end
+        
+        function dxdt_td = get.dxdt_td(obj)
+            if obj.FREQ_CENTERED
+                dxdt_td = ifft(ifftshift(obj.dxdt_fd,1));
+            else
+                dxdt_td = ifft(obj.dxdt_fd);
+            end
+            if obj.TIME_CENTERED
+                dxdt_td = fftshift(dxdt_td,1);
             end
         end
 
