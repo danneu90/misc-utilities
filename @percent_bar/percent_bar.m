@@ -1,5 +1,10 @@
 %this = percent_bar(varargin)
 %
+% The percent_bar class allows to print out progress in percent and timing estimations of a process.
+% Optionally, information on the self time of the percent_bar class can be printed.
+%
+% Default is to use MATLAB 'waitbar'. Specifying 'CMDLINE' as true in varargin prints progress in commandline, which may be faster improving self time.
+%
 % Parameters to be set:
 %         'char_bar'
 %         'char_side'
@@ -15,10 +20,47 @@
 %
 %         'CMDLINE_ONLY'
 %
-%
 % UPDATES:
 % - waitbar can be closed without killing parent
 % - waitbar window is opened at initialization
+%
+% EXAMPLE:
+%			pb = percent_bar('selftime',1, ...
+%			                 'cmdline',1, ...
+%			                 'warn_high_selftime',0.1, ...
+%			                 'profiling_on',true);
+%
+%			pb.init_loop();
+%
+%			N = 100;
+%			for ii = 0:N
+%
+%			    pause(0.05*ii/N);
+%
+%			    percent = ii/N;
+%			    pb.iteration_finished(percent);
+%
+%			end
+%
+%			pb.view_profiling
+%
+%			%%
+%
+%			clc;
+%
+%			pb = percent_bar();
+%
+%			pb.init_loop();
+%
+%			N = 100;
+%			for ii = 0:N
+%
+%			    pause(0.1);
+%
+%			    percent = ii/N;
+%			    pb.iteration_finished(percent);
+%
+%			end
 
 classdef percent_bar < handle
 
